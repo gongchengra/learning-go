@@ -4,12 +4,11 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"golang.org/x/net/html"
 	"io"
 	"log"
 	"os"
 	"strings"
-
-	"golang.org/x/net/html"
 )
 
 func getAttribute(n *html.Node, key string) (string, bool) {

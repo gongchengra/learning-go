@@ -4,15 +4,14 @@ package main
 import (
 	"bytes"
 	"errors"
+	"golang.org/x/net/html"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 	"io/ioutil"
 	"os"
 	"sort"
 	"strconv"
 	"unicode/utf8"
-
-	"golang.org/x/net/html"
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/transform"
 )
 
 func Decodegbk(s []byte) ([]byte, error) {

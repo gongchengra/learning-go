@@ -18,6 +18,7 @@ require (
 	google.golang.org/api v0.95.0
 	google.golang.org/grpc v1.48.0
 	google.golang.org/grpc/examples v0.0.0-20220816171630-3f5b7ab48ca0
+	gopkg.in/yaml.v3 v3.0.1
 	rsc.io/quote/v3 v3.1.0
 )
 

@@ -4,6 +4,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,8 +12,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-
-	"github.com/PuerkitoBio/goquery"
 )
 
 func curl(params string) string {

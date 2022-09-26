@@ -5,13 +5,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/net/html"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
-
-	"golang.org/x/net/html"
 )
 
 func renderNode(n *html.Node) string {
