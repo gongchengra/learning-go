@@ -1,0 +1,44 @@
+time go run main.go 10000000 > m.log
+
+real    0m0.294s
+user    0m0.269s
+sys     0m0.079s
+
+time go run prime.go -primeRange 10000000 > m.log
+
+real    0m0.843s
+user    0m0.541s
+sys     0m0.107s
+
+// takes too long, cancelled
+time go run sieve1.go 10000000 > m.log
+^Csignal: interrupt
+
+real    2m9.636s
+user    4m17.638s
+sys     0m0.575s
+
+time go run sieve2.go 10000000 > m.log
+
+real    0m4.190s
+user    0m3.558s
+sys     0m0.647s
+
+time go run sieve3.go 10000000 > m.log
+
+real    0m2.246s
+user    0m1.686s
+sys     0m0.609s
+
+time go run main.go 100000000 > m.log
+
+real    0m2.274s
+user    0m2.215s
+sys     0m0.155s
+
+time go run prime.go -primeRange 100000000 > m.log
+
+real    0m1.722s
+user    0m1.949s
+sys     0m0.149s
+

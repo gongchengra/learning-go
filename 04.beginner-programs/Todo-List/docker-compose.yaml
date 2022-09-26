@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+    golang:
+        build:
+            context: ./backend/
+            dockerfile: Dockerfile
+        container_name: golang
+        restart: always
+        networks:
+          - app-network
+        ports:
+            - '3000:3000'
+        depends_on: [mongo]
+    mongo:
+        container_name: mongo
+        image: mongo
+        ports:
+            - '27017:27017'
+        networks:
+          - app-network
+        # volumes:
+        #     - ./data:/data/db
+    frontend:
+        build:
+            context: ./frontend/
+            dockerfile: Dockerfile
+            args:
+                - VUE_APP_API_URL=${EXTERNAL_IP}
+        container_name: frontend
+        restart: always
+        networks:
+          - app-network
+        ports:
+            - '8080:8080'
+networks:
+  app-network:
+    external: true

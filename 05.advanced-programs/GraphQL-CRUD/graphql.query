@@ -1,0 +1,27 @@
+mutation {
+    createItems(input:{title:"Test",owner:"Alan",rating:50}){
+        id
+        title
+        owner
+        rating
+    }
+}
+mutation {
+    createItems(input:{title:"Post",owner:"Ray",rating:50}){
+        id
+        title
+        owner
+        rating
+    }
+}
+mutation {
+    createItems(input:{title:"Website",owner:"Jack",rating:70}){
+        id
+        title
+        owner
+        rating
+    }
+}
+query{items{id,title,owner,rating}}
+query{item(id:1){id,title,owner,rating}}
+mutation{delete(id:3)}
