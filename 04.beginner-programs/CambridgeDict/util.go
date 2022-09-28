@@ -1,15 +1,12 @@
 package main
 
-// go build get_tianya.go util.go
 import (
-	"bufio"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -20,7 +17,7 @@ func curl(uri string) string {
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,29 +42,4 @@ func fileExists(filename string) bool {
 		return false
 	}
 	return !info.IsDir()
-}
-
-func main() {
-	baseUrl := "https://dictionary.cambridge.org/dictionary/english/"
-	readFile, err := os.Open("words.log")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer readFile.Close()
-	fileScanner := bufio.NewScanner(readFile)
-	fileScanner.Split(bufio.ScanLines)
-	for fileScanner.Scan() {
-		word := fileScanner.Text()
-		if !fileExists(word + ".txt") {
-			uri := baseUrl + word
-			f, err := os.Create(word + ".txt")
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer f.Close()
-			f.WriteString(word + ":\n")
-			f.WriteString(curl(uri))
-			time.Sleep(1 * time.Second)
-		}
-	}
 }
