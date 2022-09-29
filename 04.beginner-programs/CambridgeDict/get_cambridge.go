@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"fmt"
 	"log"
 	"math/rand"
@@ -15,6 +16,11 @@ func main() {
 	if len(os.Args) > 1 {
 		filename = os.Args[1]
 	}
+	db, err := sql.Open("sqlite3", "words.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	wordDb := Newsqlitedb(db)
 	readFile, err := os.Open(filename)
 	if err != nil {
 		fmt.Println(err)
@@ -26,18 +32,15 @@ func main() {
 	c := 0
 	for fileScanner.Scan() {
 		word := fileScanner.Text()
-		if !fileExists(word + ".txt") {
-			fmt.Println("Lookup for ", word)
-			uri := baseUrl + word
-			content := curl(uri)
-			if content != "" {
-				f, err := os.Create(word + ".txt")
-				if err != nil {
-					log.Fatal(err)
+		_, err := wordDb.GetByWord(word)
+		if err != nil {
+			if err == ErrNotExists {
+				fmt.Println("Lookup for ", word)
+				uri := baseUrl + word
+				content := curl(uri)
+				if content != "" {
+					_, err = wordDb.Create(word, (word + ":\n" + content))
 				}
-				defer f.Close()
-				f.WriteString(word + ":\n")
-				f.WriteString(content)
 				n := time.Duration(1 + rand.Intn(5))
 				time.Sleep(n * time.Second)
 				c++

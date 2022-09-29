@@ -43,3 +43,14 @@ func fileExists(filename string) bool {
 	}
 	return !info.IsDir()
 }
+
+func lessPrint(c string) {
+	r := strings.Split(c, "\n")
+	var input int
+	for i := range r {
+		if i > 0 && i%20 == 0 {
+			fmt.Scanf("%d", &input)
+		}
+		fmt.Println(i, r[i])
+	}
+}

@@ -2,10 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"text/template"
+
+	"github.com/gorilla/mux"
 )
 
 // Compile templates on start of the application
@@ -46,9 +49,31 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	wordRepository := NewSQLiteRepository(db)
-	// Index route
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	wordDb := Newsqlitedb(db)
+	r := mux.NewRouter()
+	r.HandleFunc("/search/{word}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		word := vars["word"]
+		fmt.Println("searched ", word)
+		switch r.Method {
+		case "GET":
+			gotdef, err := wordDb.GetByWord(word)
+			if err == ErrNotExists {
+				w.Write(nil)
+			} else {
+				w.Write([]byte(gotdef))
+			}
+		case "POST":
+			def := r.FormValue("def")
+			if def != "" {
+				_, err = wordDb.Create(word, def)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+		}
+	})
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
 			index.ExecuteTemplate(w, "index.html", nil)
@@ -57,13 +82,13 @@ func main() {
 			if strings.TrimSpace(search) == "" {
 				return
 			}
-			gotdef, err := wordRepository.GetByWord(search)
+			gotdef, err := wordDb.GetByWord(search)
 			if err != nil {
 				if err == ErrNotExists {
 					uri := baseUrl + search
 					content := curl(uri)
 					if content != "" {
-						_, err = wordRepository.Create(search, string(content))
+						_, err = wordDb.Create(search, (search + ":\n" + content))
 						if err != nil {
 							log.Fatal(err)
 						}
@@ -71,11 +96,12 @@ func main() {
 					} else {
 						gotdef = search + " not found"
 					}
+				} else {
+					log.Fatal(err)
 				}
 			}
 			index.ExecuteTemplate(w, "index.html", divPrint(gotdef))
 		}
-
 	})
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", r)
 }

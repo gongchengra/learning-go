@@ -1,48 +1,34 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
 	"os"
-	"strings"
 )
-
-func lessPrint(c string) {
-	r := strings.Split(c, "\n")
-	var input int
-	for i := range r {
-		if i > 0 && i%20 == 0 {
-			fmt.Scanf("%d", &input)
-		}
-		fmt.Println(i, r[i])
-	}
-}
 
 func main() {
 	baseUrl := "https://dictionary.cambridge.org/dictionary/english/"
-	word := "go"
+	search := "go"
 	if len(os.Args) > 1 {
-		word = os.Args[1]
+		search = os.Args[1]
 	}
-	filename := word + ".txt"
-	if fileExists(filename) {
-		content, err := os.ReadFile(filename)
-		if err != nil {
-			log.Fatal(err)
-		}
-		lessPrint(string(content))
-	} else {
-		uri := baseUrl + word
-		content := curl(uri)
-		if content != "" {
-			f, err := os.Create(word + ".txt")
-			if err != nil {
-				log.Fatal(err)
+	db, err := sql.Open("sqlite3", "words.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	wordDb := Newsqlitedb(db)
+	gotdef, err := wordDb.GetByWord(search)
+	if err != nil {
+		if err == ErrNotExists {
+			uri := baseUrl + search
+			content := curl(uri)
+			if content != "" {
+				_, err = wordDb.Create(search, (search + ":\n" + content))
+				gotdef = content
+			} else {
+				gotdef = search + " not found"
 			}
-			defer f.Close()
-			f.WriteString(word + ":\n")
-			f.WriteString(content)
-			lessPrint(content)
 		}
 	}
+	lessPrint(gotdef)
 }
