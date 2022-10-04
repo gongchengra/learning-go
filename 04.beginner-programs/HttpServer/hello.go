@@ -1,5 +1,7 @@
 package main
 
+// refers to https://medium.com/rungo/creating-a-simple-hello-world-http-server-in-go-31c7fd70466e
+
 import (
 	"fmt"
 	"log"
