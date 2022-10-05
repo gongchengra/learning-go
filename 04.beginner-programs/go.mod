@@ -6,6 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gocolly/colly v1.2.0
+	github.com/gocolly/colly/v2 v2.1.0
 	github.com/golang-module/carbon/v2 v2.1.9
 	github.com/gorilla/mux v1.8.0
 	github.com/lib/pq v1.10.6
