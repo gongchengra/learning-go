@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/inancgumus/screen"
 )
 
 func curl(uri string) string {
@@ -46,10 +48,11 @@ func fileExists(filename string) bool {
 
 func lessPrint(c string) {
 	r := strings.Split(c, "\n")
-	var input int
+	_, h := screen.Size()
 	for i := range r {
-		if i > 0 && i%20 == 0 {
-			fmt.Scanf("%d", &input)
+		if i > 0 && i%(h-2) == 0 {
+			time.Sleep(time.Duration(h) * time.Second)
+			screen.Clear()
 		}
 		fmt.Println(i, r[i])
 	}

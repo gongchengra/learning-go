@@ -9,6 +9,7 @@ require (
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/golang-module/carbon/v2 v2.1.9
 	github.com/gorilla/mux v1.8.0
+	github.com/inancgumus/screen v0.0.0-20190314163918-06e984b86ed3
 	github.com/lib/pq v1.10.6
 	github.com/mattn/go-sqlite3 v1.14.15
 	github.com/nats-io/nats.go v1.16.0
@@ -60,6 +61,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094 // indirect
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
 	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220624142145-8cd45d7dbd1f // indirect
 	google.golang.org/protobuf v1.28.0 // indirect

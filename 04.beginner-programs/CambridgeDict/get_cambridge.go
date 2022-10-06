@@ -41,7 +41,7 @@ func main() {
 				if content != "" {
 					_, err = wordDb.Create(word, (word + ":\n" + content))
 				}
-				n := time.Duration(1 + rand.Intn(5))
+				n := time.Duration(5 + rand.Intn(25))
 				time.Sleep(n * time.Second)
 				c++
 				if c > 0 && c%100 == 0 {
