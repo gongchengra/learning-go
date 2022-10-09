@@ -3,9 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-
 	"github.com/golang-module/carbon/v2"
+	"os"
 )
 
 func main() {
