@@ -36,9 +36,7 @@ func main() {
 				re := regexp.MustCompile(`[\pP]+`)
 				ext := filepath.Ext(filename)
 				file := strings.TrimSuffix(filename, ext)
-				sp := regexp.MustCompile(`\s`)
-				clean := sp.ReplaceAllString(re.ReplaceAllString(file, ""), "")
-				newname := strToRuneSumString(file) + clean + ext
+				newname := strToRuneSumString(file) + re.ReplaceAllString(file, "") + ext
 				fmt.Println("Renamed ", filename, " to ", newname)
 				e := os.Rename(filename, newname)
 				if e != nil {

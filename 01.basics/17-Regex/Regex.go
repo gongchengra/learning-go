@@ -262,7 +262,10 @@ Golang中的正则表达式
 */
 import (
 	"fmt"
+	"log"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -389,5 +392,25 @@ func main() {
 		reg = regexp.MustCompile(`[\f\t\n\r\v\123\x7F\x{10FFFF}\\\^\$\.\*\+\?\{\}\(\)\[\]\|]`)
 		fmt.Printf("%q\n", reg.ReplaceAllString("\f\t\n\r\v\123\x7F\U0010FFFF\\^$.*+?{}()[]|", "-"))
 		// "----------------------"
+	}
+	{
+		var data = `22, 1, 3, 4, 5, 17, 4, 3, 21, 4, 5, 1, 48, 9, 42`
+		sum := 0
+		re := regexp.MustCompile(`,\s*`)
+		// or re := regexp.MustCompile(",\\s*")
+		vals := re.Split(data, -1)
+		for _, val := range vals {
+			n, err := strconv.Atoi(val)
+			sum += n
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		fmt.Println(sum)
+	}
+	{
+		content := "an old eagle"
+		re := regexp.MustCompile(`[^aeiou]`)
+		fmt.Println(re.ReplaceAllStringFunc(content, strings.ToUpper))
 	}
 }

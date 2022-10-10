@@ -85,4 +85,75 @@ func main() {
 			fmt.Println("t3 is after t1")
 		}
 	}
+	{
+		v1 := "2022/05/12"
+		v2 := "14:55:23"
+		v3 := "2014-11-12T11:45:26.37"
+		const (
+			layout1 = "2006/01/02"
+			layout2 = "15:04:05"
+			layout3 = "2006-01-02T15:04:05"
+		)
+		t, err := time.Parse(layout1, v1)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(t.Format(time.UnixDate))
+		t, err = time.Parse(layout2, v2)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(t.Format(time.Kitchen))
+		t, err = time.Parse(layout3, v3)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(t.Format(time.UnixDate))
+	}
+	{
+		dates := []string{
+			"Sat May 28 11:54:40 CEST 2022",
+			"Sat May 28 11:54:40 2022",
+			"Sat, 28 May 2022 11:54:40 CEST",
+			"28 May 22 11:54 CEST",
+			"2022-05-28T11:54:40.809289619+02:00",
+			"Sat May 28 11:54:40 +0200 2022",
+		}
+		layouts := []string{
+			time.UnixDate,
+			time.ANSIC,
+			time.RFC1123,
+			time.RFC822,
+			time.RFC3339Nano,
+			time.RubyDate,
+		}
+		for i := 0; i < len(dates); i++ {
+			parsed, err := time.Parse(layouts[i], dates[i])
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println(parsed)
+		}
+	}
+	{
+		loc, err := time.LoadLocation("Local")
+		if err != nil {
+			log.Println(err)
+		}
+		date := "Sat May 28 11:54:40 2022"
+		parsed, err := time.ParseInLocation(time.ANSIC, date, loc)
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Println(parsed)
+		loc, err = time.LoadLocation("Europe/Moscow")
+		if err != nil {
+			log.Println(err)
+		}
+		parsed, err = time.ParseInLocation(time.ANSIC, date, loc)
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Println(parsed)
+	}
 }
