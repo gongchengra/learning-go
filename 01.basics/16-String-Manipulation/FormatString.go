@@ -3,9 +3,7 @@ package main
 // https://zetcode.com/golang/string-format/
 /*
 The functions take the format string and the list of arguments as parameters.
-
 %[flags][width][.precision]verb
-
 d - decimal integer
 o - octal integer
 O - octal integer with 0o prefix
@@ -29,7 +27,6 @@ T - a Go-syntax representation of the type of the value
 p - pointer address
 % - a double %% prints a single %
 */
-
 import "fmt"
 
 type User struct {
