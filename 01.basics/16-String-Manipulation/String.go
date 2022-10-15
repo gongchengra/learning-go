@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -179,5 +180,31 @@ func main() {
 				break
 			}
 		}
+	}
+	{
+		builder := strings.Builder{}
+		data1 := []byte{72, 101, 108, 108, 111}
+		data2 := []byte{32}
+		data3 := []byte{116, 104, 101, 114, 101, 33}
+		builder.Write(data1)
+		builder.Write(data2)
+		builder.Write(data3)
+		fmt.Println(builder.String())
+	}
+	{
+		t0 := time.Now()
+		builder := strings.Builder{}
+		for i := 0; i < 100; i++ {
+			builder.WriteString("falcon")
+		}
+		t1 := time.Now()
+		result := ""
+		for i := 0; i < 100; i++ {
+			result += "falcon"
+		}
+		t2 := time.Now()
+		fmt.Println(t1.Sub(t0))
+		fmt.Println(t2.Sub(t1))
+		fmt.Println(builder.String(), result)
 	}
 }
