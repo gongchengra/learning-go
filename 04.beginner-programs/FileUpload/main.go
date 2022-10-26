@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"text/template"
 )
 
@@ -119,6 +120,12 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func SortFileNameAscend(files []os.FileInfo) {
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Name() < files[j].Name()
+	})
+}
+
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open(uploadPath)
 	if err != nil {
@@ -127,6 +134,7 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 	if dirs, err := f.Readdir(-1); err == nil {
+		SortFileNameAscend(dirs)
 		files := make([]map[string]string, len(dirs)+1)
 		for i, d := range dirs {
 			href := d.Name()
@@ -182,7 +190,7 @@ func main() {
 	fs := http.FileServer(http.Dir(uploadPath))
 	http.Handle("/files/", http.StripPrefix("/files", fs))
 	// List route
-	http.HandleFunc("/list", listHandler)
+	http.HandleFunc("/list", app.basicAuth(listHandler))
 	//Listen on port 8080
 	http.ListenAndServe(":8080", nil)
 }
