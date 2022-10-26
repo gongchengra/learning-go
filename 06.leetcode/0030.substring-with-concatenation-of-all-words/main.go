@@ -16,6 +16,7 @@ func findSubstring(s string, words []string) (res []int) {
 		return res
 	}
 	l, size := len(words[0]), len(words[0])*len(words)
+	fmt.Println(len(s), l, len(words), size)
 	if size > len(s) {
 		return res
 	}

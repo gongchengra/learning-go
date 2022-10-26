@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"math"
+
 	"github.com/gongchengra/learning-go/02.algorithms/math/EuclideanAlgorithm"
 	"github.com/gongchengra/learning-go/02.algorithms/math/Factorial"
 	"github.com/gongchengra/learning-go/02.algorithms/math/FastPowering"
@@ -12,12 +14,11 @@ import (
 	"github.com/gongchengra/learning-go/02.algorithms/math/Radian"
 	"github.com/gongchengra/learning-go/02.algorithms/math/SieveOfEratosthenes"
 	"github.com/gongchengra/learning-go/02.algorithms/math/SquareRoot"
-	"math"
 )
 
 func main() {
 	fmt.Println(EuclideanAlgorithm.GCD(10, 20))
-	fmt.Println(Factorial.Factorial(10))
+	fmt.Println(Factorial.Factorial(18))
 	fmt.Println(Factorial.FactorialRecursive(20))
 	fmt.Println(FastPowering.FastPowering(3.0, 5))
 	fmt.Println(Fibonacci.FibonacciRecursive(10))
