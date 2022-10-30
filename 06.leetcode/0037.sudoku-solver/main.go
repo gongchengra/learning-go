@@ -15,10 +15,12 @@ func main() {
 			[]byte("...419..5"),
 			[]byte("....8..79"),
 		}
+		printBoard(b1)
 		solveSudoku(b1)
 		printBoard(b1)
 	}
-	if false {
+	fmt.Println()
+	if true {
 		b2 := [][]byte{
 			[]byte("........."),
 			[]byte(".23...78."),
@@ -30,6 +32,7 @@ func main() {
 			[]byte("...3.1..."),
 			[]byte("....9...."),
 		}
+		printBoard(b2)
 		solveSudoku(b2)
 		printBoard(b2)
 	}
@@ -41,76 +44,125 @@ func printBoard(b [][]byte) {
 	}
 }
 
-func updatePossibility(board [][]byte, possibility [][]byte) {
-	for i := 0; i < 81; i++ {
-		r := i / 9
-		c := i % 9
-		possibility[i] = []byte{}
-		if board[r][c] != '.' {
-			possibility[i] = append(possibility[i], board[r][c])
-		} else {
-			for n := byte('1'); n <= '9'; n++ {
-				isAvailable := func(r, c int) bool {
-					for i := 0; i < 9; i++ {
-						if board[r][i] == n || board[i][c] == n ||
-							board[(r/3)*3+(i/3)][(c/3)*3+(i%3)] == n {
-							return false
-						}
-					}
-					return true
-				}
-				if isAvailable(r, c) {
-					possibility[i] = append(possibility[i], n)
-				}
-			}
-		}
-	}
+// method 2
+type xy struct {
+	x   int
+	y   int
+	all []byte
 }
 
 func solveSudoku(board [][]byte) {
-	possibility := [][]byte{}
-	for i := 0; i < 81; i++ {
-		possibility = append(possibility, []byte{})
-	}
-	updatePossibility(board, possibility)
-	for {
-		change := 0
-		for i := 0; i < 81; i++ {
-			r := i / 9
-			c := i % 9
-			if board[r][c] == '.' && len(possibility[i]) == 1 {
-				board[r][c] = possibility[i][0]
-				change++
-				updatePossibility(board, possibility)
-			}
-		}
-		if change == 0 {
-			break
-		}
-	}
-}
-
-func hasSolved(board [][]byte) bool {
+	pos := []xy{}
 	for i := 0; i < 9; i++ {
 		for j := 0; j < 9; j++ {
 			if board[i][j] == '.' {
-				return false
+				all := []byte{}
+				for n := byte('1'); n <= '9'; n++ {
+					isAvailable := func(r, c int) bool {
+						for k := 0; k < 9; k++ {
+							if board[r][k] == n || board[k][c] == n ||
+								board[(r/3)*3+(k/3)][(c/3)*3+(k%3)] == n {
+								return false
+							}
+						}
+						return true
+					}
+					if isAvailable(i, j) {
+						all = append(all, n)
+					}
+				}
+				pos = append(pos, xy{i, j, all})
 			}
 		}
 	}
-	return true
+	fill(board, &pos, 0)
 }
 
-func remove(s []byte, c byte) (r []byte) {
-	for _, v := range s {
-		if v != c {
-			r = append(r, v)
+func fill(board [][]byte, pos *[]xy, index int) bool {
+	if index == len(*pos) {
+		return true
+	}
+	all := (*pos)[index].all
+	r := (*pos)[index].x
+	c := (*pos)[index].y
+	for i := 0; i < len(all); i++ {
+		n := all[i]
+		board[r][c] = n
+		valid := true
+		for j := 0; j < 9; j++ {
+			if (j != c && board[r][j] == n) ||
+				(j != r && board[j][c] == n) ||
+				((r/3)*3+j/3 != r && (c/3)*3+j%3 != c &&
+					board[(r/3)*3+(j/3)][(c/3)*3+(j%3)] == n) {
+				valid = false
+			}
+		}
+		if valid && fill(board, pos, index+1) {
+			return true
+		}
+		board[r][c] = '.'
+	}
+	return false
+}
+
+/* method 1
+func help(board [][]byte, rows, cols, blocks [][]bool, idx int) bool {
+	if idx == 81 {
+		return true
+	}
+	i := int(idx / 9)
+	j := idx % 9
+	if board[i][j] != '.' {
+		if help(board, rows, cols, blocks, idx+1) {
+			return true
+		}
+	} else {
+		for v := 0; v < 9; v++ {
+			if rows[i][v] || cols[j][v] || blocks[i-i%3+j/3][v] {
+				continue
+			}
+			board[i][j] = byte(v + 49)
+			rows[i][v] = true
+			cols[j][v] = true
+			blocks[i-i%3+j/3][v] = true
+			if true == help(board, rows, cols, blocks, idx+1) {
+				return true
+			}
+			board[i][j] = '.'
+			rows[i][v] = false
+			cols[j][v] = false
+			blocks[i-i%3+j/3][v] = false
 		}
 	}
-	return r
+	return false
 }
 
-/*
+func solveSudoku(board [][]byte) {
+	var rows, cols, blocks [][]bool
+	for i := 0; i < 9; i++ {
+		_rows := []bool{false, false, false, false, false, false, false, false, false}
+		_cols := []bool{false, false, false, false, false, false, false, false, false}
+		_blocks := []bool{false, false, false, false, false, false, false, false, false}
+		rows = append(rows, _rows)
+		cols = append(cols, _cols)
+		blocks = append(blocks, _blocks)
+	}
+	for i := 0; i < 9; i++ {
+		for j := 0; j < 9; j++ {
+			if board[i][j] == '.' {
+				continue
+			}
+			num := board[i][j] - 49
+			rows[i][num] = true
+			cols[j][num] = true
+			blocks[i-i%3+j/3][num] = true
+		}
+	}
+	help(board, rows, cols, blocks, 0)
+}
+*/
+/* method 0
+
 func solveSudoku(board [][]byte) {
 	fill(board, '1', 0)
 }
