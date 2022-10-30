@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 func main() {
-	if true {
+	if false {
 		b1 := [][]byte{
 			[]byte("53..7...."),
 			[]byte("6..195..."),
@@ -75,19 +75,20 @@ func solveSudoku(board [][]byte) {
 			}
 		}
 	}
-	fill(board, &pos, 0)
+	fill(board, pos, 0)
 }
 
-func fill(board [][]byte, pos *[]xy, index int) bool {
-	if index == len(*pos) {
+func fill(board [][]byte, pos []xy, index int) bool {
+	if index == len(pos) {
 		return true
 	}
-	all := (*pos)[index].all
-	r := (*pos)[index].x
-	c := (*pos)[index].y
+	all := pos[index].all
+	r := pos[index].x
+	c := pos[index].y
 	for i := 0; i < len(all); i++ {
 		n := all[i]
 		board[r][c] = n
+		printBoard(board)
 		valid := true
 		for j := 0; j < 9; j++ {
 			if (j != c && board[r][j] == n) ||
