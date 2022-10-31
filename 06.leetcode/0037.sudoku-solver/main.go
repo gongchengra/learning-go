@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 func main() {
 	if false {
@@ -20,7 +23,7 @@ func main() {
 		printBoard(b1)
 	}
 	fmt.Println()
-	if true {
+	if false {
 		b2 := [][]byte{
 			[]byte("........."),
 			[]byte(".23...78."),
@@ -28,13 +31,29 @@ func main() {
 			[]byte("4...5...1"),
 			[]byte("9.......6"),
 			[]byte(".6.....9."),
-			[]byte("..5...8.."),
+			[]byte("........."),
 			[]byte("...3.1..."),
 			[]byte("....9...."),
 		}
 		printBoard(b2)
 		solveSudoku(b2)
 		printBoard(b2)
+	}
+	if true {
+		b3 := [][]byte{
+			[]byte("4.....8.5"),
+			[]byte(".3......."),
+			[]byte("...7....."),
+			[]byte(".2.....6."),
+			[]byte("....8.4.."),
+			[]byte("....1...."),
+			[]byte("...6.3.7."),
+			[]byte("5..2....."),
+			[]byte("1.4......"),
+		}
+		printBoard(b3)
+		solveSudoku(b3)
+		printBoard(b3)
 	}
 }
 
@@ -51,8 +70,41 @@ type xy struct {
 	all []byte
 }
 
-func solveSudoku(board [][]byte) {
-	pos := []xy{}
+func simplify(board [][]byte) {
+	for {
+		change := 0
+		for i := 0; i < 9; i++ {
+			for j := 0; j < 9; j++ {
+				if board[i][j] == '.' {
+					all := []byte{}
+					for n := byte('1'); n <= '9'; n++ {
+						isAvailable := func(r, c int) bool {
+							for k := 0; k < 9; k++ {
+								if board[r][k] == n || board[k][c] == n ||
+									board[(r/3)*3+(k/3)][(c/3)*3+(k%3)] == n {
+									return false
+								}
+							}
+							return true
+						}
+						if isAvailable(i, j) {
+							all = append(all, n)
+						}
+					}
+					if len(all) == 1 {
+						board[i][j] = all[0]
+						change++
+					}
+				}
+			}
+		}
+		if change == 0 {
+			break
+		}
+	}
+}
+
+func updatePossibility(board [][]byte) (pos []xy) {
 	for i := 0; i < 9; i++ {
 		for j := 0; j < 9; j++ {
 			if board[i][j] == '.' {
@@ -75,6 +127,15 @@ func solveSudoku(board [][]byte) {
 			}
 		}
 	}
+	return
+}
+
+func solveSudoku(board [][]byte) {
+	simplify(board)
+	pos := updatePossibility(board)
+	sort.Slice(pos, func(p, q int) bool {
+		return len(pos[p].all) < len(pos[q].all)
+	})
 	fill(board, pos, 0)
 }
 
@@ -88,7 +149,6 @@ func fill(board [][]byte, pos []xy, index int) bool {
 	for i := 0; i < len(all); i++ {
 		n := all[i]
 		board[r][c] = n
-		printBoard(board)
 		valid := true
 		for j := 0; j < 9; j++ {
 			if (j != c && board[r][j] == n) ||
@@ -104,6 +164,15 @@ func fill(board [][]byte, pos []xy, index int) bool {
 		board[r][c] = '.'
 	}
 	return false
+}
+
+func remove(s []byte, c byte) (r []byte) {
+	for _, v := range s {
+		if v != c {
+			r = append(r, v)
+		}
+	}
+	return r
 }
 
 /* method 1
