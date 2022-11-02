@@ -11,33 +11,88 @@ func solveSudoku(board [][]byte) {
 	//     printBoard(pos)
 	cnt := 0
 	posStack := list.New()
-	kvStack := list.New()
+	keyStack := list.New()
+	valStack := list.New()
 	for {
 		update(pos)
 		s := status(pos)
 		if s == "solved" {
 			printBoard(pos)
+			set(pos, board)
 			cnt++
 			if cnt > 9 {
 				break
 			}
 		} else if s == "unsolved" {
-			idx := leastUnknow(pos)
 			posStack.PushBack(pos)
-			var kv map[int]byte
-			kv[idx] = pos[idx][0]
-			kvStack.PushBack(kv)
-			pos[idx] = remove(pos[idx], pos[idx][0])
+			idx := leastUnknow(pos)
+			keyStack.PushBack(idx)
+			assume := pos[idx][0]
+			remain := remove(pos[idx], assume)
+			valStack.PushBack(remain)
+			fmt.Println("\nPushed ", idx, string(remain))
+			fmt.Println("Unsolved Assume postion ", idx, " to be ", string(assume))
+			pos[idx] = []byte{assume}
+			printPos(pos)
 			update(pos)
+			//             set(pos, board)
+			//             printBoard(board)
 		} else {
-			pos = posStack.Back()
-			if pos == nil {
+			if posStack.Len() == 0 {
 				break
 			}
+			pos = posStack.Back().Value.([][]byte)
+			posStack.Remove(posStack.Back())
+			if keyStack.Len() == 0 {
+				break
+			}
+			k := keyStack.Back().Value.(int)
+			keyStack.Remove(keyStack.Back())
+			if valStack.Len() == 0 {
+				break
+			}
+			v := valStack.Back().Value.([]byte)
+			valStack.Remove(valStack.Back())
+			assume := v[0]
+			pos[k] = []byte{assume}
+			remain := remove(v, assume)
+			if len(remain) > 0 {
+				posStack.PushBack(pos)
+				valStack.PushBack(remain)
+			}
+			fmt.Println("\nPushed ", k, string(remain))
+			fmt.Println("Invalid: Assume postion ", k, " to be ", string(assume))
+			printPos(pos)
+			update(pos)
+			//             set(pos, board)
+			//             printBoard(board)
+			/*
+				kv := kvStack.Back().Value.(map[int][]byte)
+				fmt.Println(kv)
+				for k, v := range kv {
+					pos[k] = []byte{v[0]}
+				}
+			*/
 		}
 
 	}
 	// printBoard(pos)
+}
+
+func printPos(pos [][]byte) {
+	for i := 0; i < 81; i++ {
+		if i%9 == 0 {
+			fmt.Println()
+		}
+		fmt.Printf("%s ", string(pos[i]))
+	}
+}
+func set(pos [][]byte, board [][]byte) {
+	for i := 0; i < 81; i++ {
+		if len(pos[i]) == 1 {
+			board[i/9][i%9] = pos[i][0]
+		}
+	}
 }
 
 func leastUnknow(pos [][]byte) (res int) {
@@ -84,21 +139,17 @@ func update(pos [][]byte) {
 		for i := 0; i < 81; i++ {
 			if len(pos[i]) == 1 {
 				for _, j := range peers(i) {
-					if len(pos[j]) > 1 {
-						inRes := func(b byte, pos []byte) bool {
-							for _, v := range pos {
-								if v == b {
-									return true
-								}
+					inRes := func(b byte, pos []byte) bool {
+						for _, v := range pos {
+							if v == b {
+								return true
 							}
-							return false
 						}
-						if inRes(pos[i][0], pos[j]) {
-							fmt.Println(i, j, string(pos[i]), string(pos[j]), change)
-							pos[j] = remove(pos[j], pos[i][0])
-							fmt.Println(i, j, string(pos[i]), string(pos[j]), change)
-							change++
-						}
+						return false
+					}
+					if inRes(pos[i][0], pos[j]) {
+						pos[j] = remove(pos[j], pos[i][0])
+						change++
 					}
 				}
 			}
@@ -124,6 +175,11 @@ func status(pos [][]byte) (s string) {
 		if len(pos[i]) < 1 {
 			return "invalid"
 		} else if len(pos[i]) == 1 {
+			for _, j := range peers(i) {
+				if len(pos[j]) == 1 && pos[j][0] == pos[i][0] {
+					return "invalid"
+				}
+			}
 			c++
 		} else {
 			return "unsolved"
