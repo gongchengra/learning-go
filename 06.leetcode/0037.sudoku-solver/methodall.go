@@ -9,70 +9,51 @@ import (
 func solveSudoku(board [][]byte) {
 	pos := calculatePossibility(board)
 	//     printBoard(pos)
+	fmt.Println(len(peers(80)), peers(80))
+	fmt.Println(len(peers(0)), peers(0))
 	cnt := 0
-	posStack := list.New()
-	keyStack := list.New()
-	valStack := list.New()
+	stack := list.New()
 	for {
-		update(pos)
-		s := status(pos)
+		s := update(pos)
 		if s == "solved" {
-			printBoard(pos)
 			set(pos, board)
 			cnt++
 			if cnt > 9 {
 				break
 			}
 		} else if s == "unsolved" {
-			posStack.PushBack(pos)
-			idx := leastUnknow(pos)
-			keyStack.PushBack(idx)
-			assume := pos[idx][0]
-			remain := remove(pos[idx], assume)
-			valStack.PushBack(remain)
-			fmt.Println("\nPushed ", idx, string(remain))
-			fmt.Println("Unsolved Assume postion ", idx, " to be ", string(assume))
-			pos[idx] = []byte{assume}
+			fmt.Println("unsolved")
 			printPos(pos)
+			stack.PushBack(pos)
+			k, v := leastUnknow(pos)
+			remain := remove(v, v[0])
+			stack.PushBack(k)
+			stack.PushBack(remain)
+			fmt.Println("unsolved", k, remain)
+			pos[k] = []byte{v[0]}
 			update(pos)
-			//             set(pos, board)
-			//             printBoard(board)
 		} else {
-			if posStack.Len() == 0 {
-				break
-			}
-			pos = posStack.Back().Value.([][]byte)
-			posStack.Remove(posStack.Back())
-			if keyStack.Len() == 0 {
-				break
-			}
-			k := keyStack.Back().Value.(int)
-			keyStack.Remove(keyStack.Back())
-			if valStack.Len() == 0 {
-				break
-			}
-			v := valStack.Back().Value.([]byte)
-			valStack.Remove(valStack.Back())
-			assume := v[0]
-			pos[k] = []byte{assume}
-			remain := remove(v, assume)
-			if len(remain) > 0 {
-				posStack.PushBack(pos)
-				valStack.PushBack(remain)
-			}
-			fmt.Println("\nPushed ", k, string(remain))
-			fmt.Println("Invalid: Assume postion ", k, " to be ", string(assume))
+			fmt.Println("invalid")
 			printPos(pos)
-			update(pos)
-			//             set(pos, board)
-			//             printBoard(board)
-			/*
-				kv := kvStack.Back().Value.(map[int][]byte)
-				fmt.Println(kv)
-				for k, v := range kv {
-					pos[k] = []byte{v[0]}
+			if stack.Len() == 0 {
+				break
+			} else {
+				v := stack.Back().Value.([]byte)
+				stack.Remove(stack.Back())
+				k := stack.Back().Value.(int)
+				stack.Remove(stack.Back())
+				pos := stack.Back().Value.([][]byte)
+				stack.Remove(stack.Back())
+				assume := v[0]
+				pos[k] = []byte{assume}
+				update(pos)
+				remain := remove(v, assume)
+				if len(remain) > 0 {
+					stack.PushBack(k)
+					stack.PushBack(remain)
+					fmt.Println("invalid", k, remain)
 				}
-			*/
+			}
 		}
 
 	}
@@ -95,45 +76,78 @@ func set(pos [][]byte, board [][]byte) {
 	}
 }
 
-func leastUnknow(pos [][]byte) (res int) {
+func leastUnknow(pos [][]byte) (res int, val []byte) {
 	max := 9
 	for i := 0; i < 81; i++ {
 		if len(pos[i]) > 1 && len(pos[i]) < max {
 			max, res = len(pos[i]), i
 		}
 	}
+	return res, pos[res]
+}
+
+func row(idx int) (res []int) {
+	r := idx / 9
+	for j := 0; j < 9; j++ {
+		row := r*9 + j
+		if row != idx {
+			res = append(res, row)
+		}
+	}
+	return
+}
+
+func col(idx int) (res []int) {
+	c := idx % 9
+	for j := 0; j < 9; j++ {
+		col := j*9 + c
+		if col != idx {
+			res = append(res, col)
+		}
+	}
+	return
+}
+
+func block(idx int) (res []int) {
+	r, c := idx/9, idx%9
+	for j := 0; j < 9; j++ {
+		block := (r/3)*3*9 + (c/3)*3 + (j/3)*9 + j%3
+		if block != idx {
+			res = append(res, block)
+		}
+	}
 	return
 }
 
 func peers(idx int) (res []int) {
-	r, c := idx/9, idx%9
-	for j := 0; j < 9; j++ {
-		inSlice := func(i int) bool {
-			for _, v := range res {
-				if v == i {
-					return true
-				}
+	inSlice := func(i int) bool {
+		for _, v := range res {
+			if v == i {
+				return true
 			}
-			return false
 		}
-		row := r*9 + j
-		if row != idx && !inSlice(row) {
-			res = append(res, row)
+		return false
+	}
+	for _, i := range row(idx) {
+		if !inSlice(i) {
+			res = append(res, i)
 		}
-		col := j*9 + c
-		if col != idx && !inSlice(col) {
-			res = append(res, col)
+	}
+	for _, j := range col(idx) {
+		if !inSlice(j) {
+			res = append(res, j)
 		}
-		block := (r/3)*3*9 + (c/3)*3 + (j/3)*9 + j%3
-		if block != idx && !inSlice(block) {
-			res = append(res, block)
+	}
+	for _, k := range block(idx) {
+		if !inSlice(k) {
+			res = append(res, k)
 		}
 	}
 	sort.Ints(res)
 	return
 }
 
-func update(pos [][]byte) {
+func update(pos [][]byte) (s string) {
 	for {
 		change := 0
 		for i := 0; i < 81; i++ {
@@ -158,6 +172,7 @@ func update(pos [][]byte) {
 			break
 		}
 	}
+	return status(pos)
 }
 
 func remove(s []byte, c byte) (r []byte) {
