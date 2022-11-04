@@ -9,22 +9,22 @@ import (
 func solveSudoku(board [][]byte) {
 	pos := calculatePossibility(board)
 	update(pos)
-	//     cnt := 0
+	cnt := 0
 	stack := list.New()
 	for {
 		s := status(pos)
 		if s == "solved" {
 			if isValid(pos) {
-				set(pos, board)
-				break
-				/* terminate for multiple solution
+				//                 set(pos, board)
+				//                 break
+				//                 /* terminate for multiple solution
 				printPos(pos)
 				cnt++
 				if cnt > 10 {
 					set(pos, board)
 					break
 				}
-				*/
+				//                 */
 			}
 			if stack.Len() == 0 {
 				break
@@ -87,6 +87,7 @@ func leastUnknow(pos [][]byte) (res int, val []byte) {
 	for i := 0; i < 81; i++ {
 		if len(pos[i]) > 1 && len(pos[i]) < max {
 			max, res = len(pos[i]), i
+			return res, pos[res]
 		}
 	}
 	return res, pos[res]

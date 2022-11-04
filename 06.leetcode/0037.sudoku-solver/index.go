@@ -50,3 +50,9 @@ func main() {
 		printBoard(b)
 	}
 }
+
+func printBoard(b [][]byte) {
+	for i, v := range b {
+		fmt.Println(i, string(v))
+	}
+}
