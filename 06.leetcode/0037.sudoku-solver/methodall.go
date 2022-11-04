@@ -8,56 +8,75 @@ import (
 
 func solveSudoku(board [][]byte) {
 	pos := calculatePossibility(board)
-	//     printBoard(pos)
-	fmt.Println(len(peers(80)), peers(80))
-	fmt.Println(len(peers(0)), peers(0))
-	cnt := 0
+	printPos(pos)
 	stack := list.New()
 	for {
-		s := update(pos)
+		s := status(pos)
 		if s == "solved" {
-			set(pos, board)
-			cnt++
-			if cnt > 9 {
-				break
+			if isValid(pos) {
+				printPos(pos)
+				set(pos, board)
 			}
-		} else if s == "unsolved" {
-			fmt.Println("unsolved")
-			printPos(pos)
-			stack.PushBack(pos)
+			if stack.Len() == 0 {
+				break
+			} else {
+				v := stack.Remove(stack.Back()).([]byte)
+				k := stack.Remove(stack.Back()).(int)
+				pos = stack.Remove(stack.Back()).([][]byte)
+				pos[k] = []byte{v[0]}
+				update(pos)
+				printPos(pos)
+				remain := remove(v, v[0])
+				fmt.Println("solved", k, string(v), string(v[0]), string(remain), len(remain))
+				if len(remain) > 0 {
+					stack.PushBack(deepcopy(pos))
+					stack.PushBack(k)
+					stack.PushBack(remain)
+					fmt.Println(k, string(remain))
+				}
+			}
+		}
+		if s == "unsolved" {
+			stack.PushBack(deepcopy(pos))
 			k, v := leastUnknow(pos)
 			remain := remove(v, v[0])
 			stack.PushBack(k)
 			stack.PushBack(remain)
-			fmt.Println("unsolved", k, remain)
 			pos[k] = []byte{v[0]}
+			fmt.Println("unsolved", k, string(v))
 			update(pos)
-		} else {
-			fmt.Println("invalid")
 			printPos(pos)
+		}
+		if s == "error" {
 			if stack.Len() == 0 {
 				break
 			} else {
-				v := stack.Back().Value.([]byte)
-				stack.Remove(stack.Back())
-				k := stack.Back().Value.(int)
-				stack.Remove(stack.Back())
-				pos := stack.Back().Value.([][]byte)
-				stack.Remove(stack.Back())
-				assume := v[0]
-				pos[k] = []byte{assume}
+				v := stack.Remove(stack.Back()).([]byte)
+				k := stack.Remove(stack.Back()).(int)
+				pos = stack.Remove(stack.Back()).([][]byte)
+				pos[k] = []byte{v[0]}
+				fmt.Println("error", k, string(v))
 				update(pos)
-				remain := remove(v, assume)
+				printPos(pos)
+				remain := remove(v, v[0])
 				if len(remain) > 0 {
 					stack.PushBack(k)
 					stack.PushBack(remain)
-					fmt.Println("invalid", k, remain)
 				}
 			}
 		}
-
 	}
 	// printBoard(pos)
+}
+
+func deepcopy(pos [][]byte) (res [][]byte) {
+	for i, k := range pos {
+		res = append(res, []byte{})
+		for _, v := range k {
+			res[i] = append(res[i], v)
+		}
+	}
+	return
 }
 
 func printPos(pos [][]byte) {
@@ -67,7 +86,9 @@ func printPos(pos [][]byte) {
 		}
 		fmt.Printf("%s ", string(pos[i]))
 	}
+	fmt.Println()
 }
+
 func set(pos [][]byte, board [][]byte) {
 	for i := 0; i < 81; i++ {
 		if len(pos[i]) == 1 {
@@ -147,22 +168,50 @@ func peers(idx int) (res []int) {
 	return
 }
 
-func update(pos [][]byte) (s string) {
+func inPos(b byte, posi []byte) bool {
+	for _, v := range posi {
+		if v == b {
+			return true
+		}
+	}
+	return false
+}
+
+func update(pos [][]byte) {
 	for {
 		change := 0
 		for i := 0; i < 81; i++ {
 			if len(pos[i]) == 1 {
 				for _, j := range peers(i) {
-					inRes := func(b byte, pos []byte) bool {
-						for _, v := range pos {
-							if v == b {
-								return true
-							}
-						}
-						return false
-					}
-					if inRes(pos[i][0], pos[j]) {
+					//                     if inPos(pos[i][0], pos[j]) && len(pos[j]) > 1 {
+					if inPos(pos[i][0], pos[j]) {
 						pos[j] = remove(pos[j], pos[i][0])
+						change++
+					}
+				}
+			}
+		}
+		for i := 0; i < 81; i++ {
+			if len(pos[i]) > 1 {
+				for _, v := range pos[i] {
+					cntc, cntr, cntb := 0, 0, 0
+					for _, c := range col(i) {
+						if inPos(v, pos[c]) {
+							cntc++
+						}
+					}
+					for _, r := range row(i) {
+						if inPos(v, pos[r]) {
+							cntr++
+						}
+					}
+					for _, b := range block(i) {
+						if inPos(v, pos[b]) {
+							cntb++
+						}
+					}
+					if cntc == 0 || cntr == 0 || cntb == 0 {
+						pos[i] = []byte{v}
 						change++
 					}
 				}
@@ -172,7 +221,6 @@ func update(pos [][]byte) (s string) {
 			break
 		}
 	}
-	return status(pos)
 }
 
 func remove(s []byte, c byte) (r []byte) {
@@ -186,24 +234,32 @@ func remove(s []byte, c byte) (r []byte) {
 
 func status(pos [][]byte) (s string) {
 	c := 0
-	for i := 0; i < 81; i++ {
-		if len(pos[i]) < 1 {
-			return "invalid"
-		} else if len(pos[i]) == 1 {
-			for _, j := range peers(i) {
-				if len(pos[j]) == 1 && pos[j][0] == pos[i][0] {
-					return "invalid"
-				}
-			}
+	for _, v := range pos {
+		if 0 == len(v) {
+			return "error"
+		}
+		if 1 == len(v) {
 			c++
-		} else {
-			return "unsolved"
 		}
 	}
-	if c == 81 {
+	if 81 == c {
 		return "solved"
 	}
-	return
+	return "unsolved"
+}
+
+func isValid(pos [][]byte) bool {
+	for i := 0; i < 81; i++ {
+		if len(pos[i]) != 1 {
+			return false
+		}
+		for j := range peers(i) {
+			if len(pos[j]) != 1 || pos[j][0] == pos[i][0] {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func calculatePossibility(board [][]byte) (possibility [][]byte) {
