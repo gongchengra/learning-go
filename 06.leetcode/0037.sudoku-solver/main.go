@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 func main() {
@@ -47,10 +48,14 @@ func main() {
 	//         solveSudoku(b2)
 	//         printBoard(b2)
 	//         printBoard(b3)
-	//         t0 := time.Now()
+	// method1 332.251244ms
+	// method2 617.430751ms
+	// method3 3.283633214s
+	// methodall 62.988252ms
+	t0 := time.Now()
 	solveSudoku(b3)
-	//         t1 := time.Now()
-	//         fmt.Println(t1.Sub(t0))
+	t1 := time.Now()
+	fmt.Println(t1.Sub(t0))
 	printBoard(b3)
 }
 

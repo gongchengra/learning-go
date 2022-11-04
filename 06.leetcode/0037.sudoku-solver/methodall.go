@@ -8,14 +8,23 @@ import (
 
 func solveSudoku(board [][]byte) {
 	pos := calculatePossibility(board)
-	printPos(pos)
+	update(pos)
+	//     cnt := 0
 	stack := list.New()
 	for {
 		s := status(pos)
 		if s == "solved" {
 			if isValid(pos) {
-				printPos(pos)
 				set(pos, board)
+				break
+				/* terminate for multiple solution
+				printPos(pos)
+				cnt++
+				if cnt > 10 {
+					set(pos, board)
+					break
+				}
+				*/
 			}
 			if stack.Len() == 0 {
 				break
@@ -25,14 +34,11 @@ func solveSudoku(board [][]byte) {
 				pos = stack.Remove(stack.Back()).([][]byte)
 				pos[k] = []byte{v[0]}
 				update(pos)
-				printPos(pos)
 				remain := remove(v, v[0])
-				fmt.Println("solved", k, string(v), string(v[0]), string(remain), len(remain))
 				if len(remain) > 0 {
 					stack.PushBack(deepcopy(pos))
 					stack.PushBack(k)
 					stack.PushBack(remain)
-					fmt.Println(k, string(remain))
 				}
 			}
 		}
@@ -43,30 +49,9 @@ func solveSudoku(board [][]byte) {
 			stack.PushBack(k)
 			stack.PushBack(remain)
 			pos[k] = []byte{v[0]}
-			fmt.Println("unsolved", k, string(v))
 			update(pos)
-			printPos(pos)
-		}
-		if s == "error" {
-			if stack.Len() == 0 {
-				break
-			} else {
-				v := stack.Remove(stack.Back()).([]byte)
-				k := stack.Remove(stack.Back()).(int)
-				pos = stack.Remove(stack.Back()).([][]byte)
-				pos[k] = []byte{v[0]}
-				fmt.Println("error", k, string(v))
-				update(pos)
-				printPos(pos)
-				remain := remove(v, v[0])
-				if len(remain) > 0 {
-					stack.PushBack(k)
-					stack.PushBack(remain)
-				}
-			}
 		}
 	}
-	// printBoard(pos)
 }
 
 func deepcopy(pos [][]byte) (res [][]byte) {
@@ -183,8 +168,7 @@ func update(pos [][]byte) {
 		for i := 0; i < 81; i++ {
 			if len(pos[i]) == 1 {
 				for _, j := range peers(i) {
-					//                     if inPos(pos[i][0], pos[j]) && len(pos[j]) > 1 {
-					if inPos(pos[i][0], pos[j]) {
+					if inPos(pos[i][0], pos[j]) && len(pos[j]) > 1 {
 						pos[j] = remove(pos[j], pos[i][0])
 						change++
 					}
@@ -235,9 +219,6 @@ func remove(s []byte, c byte) (r []byte) {
 func status(pos [][]byte) (s string) {
 	c := 0
 	for _, v := range pos {
-		if 0 == len(v) {
-			return "error"
-		}
 		if 1 == len(v) {
 			c++
 		}
@@ -253,7 +234,7 @@ func isValid(pos [][]byte) bool {
 		if len(pos[i]) != 1 {
 			return false
 		}
-		for j := range peers(i) {
+		for _, j := range peers(i) {
 			if len(pos[j]) != 1 || pos[j][0] == pos[i][0] {
 				return false
 			}

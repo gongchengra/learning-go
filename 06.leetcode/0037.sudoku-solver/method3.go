@@ -103,12 +103,3 @@ func fill(board [][]byte, pos []xy, index int) bool {
 	}
 	return false
 }
-
-func remove(s []byte, c byte) (r []byte) {
-	for _, v := range s {
-		if v != c {
-			r = append(r, v)
-		}
-	}
-	return r
-}
