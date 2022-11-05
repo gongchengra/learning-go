@@ -3,6 +3,7 @@ package main
 import (
 	"container/list"
 	"fmt"
+	"os"
 	"sort"
 )
 
@@ -15,16 +16,16 @@ func solveSudoku(board [][]byte) {
 		s := status(pos)
 		if s == "solved" {
 			if isValid(pos) {
-				//                 set(pos, board)
-				//                 break
-				//                 /* terminate for multiple solution
-				printPos(pos)
-				cnt++
-				if cnt > 10 {
-					set(pos, board)
-					break
+				if len(os.Args) > 1 {
+					cnt++
+					if cnt > 10 {
+						printPos(pos)
+						set(pos, board)
+						break
+					}
 				}
-				//                 */
+				set(pos, board)
+				break
 			}
 			if stack.Len() == 0 {
 				break
@@ -84,12 +85,14 @@ func set(pos [][]byte, board [][]byte) {
 
 func leastUnknow(pos [][]byte) (res int, val []byte) {
 	max := 9
-	for i := 0; i < 81; i++ {
+	//     for i := 0; i < 81; i++ {
+	for i := 80; i >= 0; i-- {
 		if len(pos[i]) > 1 && len(pos[i]) < max {
 			max, res = len(pos[i]), i
-			return res, pos[res]
+			//             return res, pos[res]
 		}
 	}
+	// return least Unknow may lead to loop result and program will never top
 	return res, pos[res]
 }
 

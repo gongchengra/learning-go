@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -30,11 +31,11 @@ func main() {
 	defer readFile.Close()
 	fileScanner := bufio.NewScanner(readFile)
 	fileScanner.Split(bufio.ScanLines)
+	var duration time.Duration = 0
+	i := 0
 	for fileScanner.Scan() {
 		line := fileScanner.Text()
-		//         fmt.Println(line)
 		nums := strings.Split(line, "")
-		//         fmt.Println(nums)
 		b := [][]byte{}
 		k := 0
 		for i := 0; i < 9; i++ {
@@ -44,15 +45,29 @@ func main() {
 				k++
 			}
 		}
+		fmt.Println()
 		fmt.Println(line)
 		printBoard(b)
+		t0 := time.Now()
 		solveSudoku(b)
+		t1 := time.Now()
+		fmt.Println(t1.Sub(t0))
+		duration += t1.Sub(t0)
+		i++
 		printBoard(b)
+		fmt.Println()
 	}
+	fmt.Println(duration, i, duration/time.Duration(i))
 }
 
 func printBoard(b [][]byte) {
-	for i, v := range b {
-		fmt.Println(i, string(v))
+	for _, v := range b {
+		for i, vb := range v {
+			if i < 8 {
+				fmt.Printf("%c ", vb)
+			} else {
+				fmt.Printf("%c\n", vb)
+			}
+		}
 	}
 }
