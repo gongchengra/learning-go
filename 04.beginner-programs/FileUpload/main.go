@@ -8,7 +8,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"sort"
+	"strings"
 	"text/template"
 )
 
@@ -191,6 +193,15 @@ func main() {
 	http.Handle("/files/", http.StripPrefix("/files", fs))
 	// List route
 	http.HandleFunc("/list", app.basicAuth(listHandler))
+	http.HandleFunc("/data/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Disposition", `attachment;`)
+		http.ServeFile(w, r, filepath.Join(".", r.URL.Path))
+	})
+	http.HandleFunc("/download/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Disposition", `attachment;`)
+		http.ServeFile(w, r, filepath.Join(".", strings.Replace(r.URL.Path, "download", "data", 1)))
+	})
+
 	//Listen on port 8080
 	http.ListenAndServe(":8080", nil)
 }
