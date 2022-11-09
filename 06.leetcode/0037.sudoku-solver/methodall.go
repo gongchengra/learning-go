@@ -16,7 +16,6 @@ func solveSudoku(board [][]byte) {
 	pos := calculatePossibility(board)
 	update(pos)
 	know := deepcopy(pos)
-	printPos(know)
 	cnt := 0
 	for _, unknow := range unknowCells(pos) {
 		for _, uc := range unknow.p {

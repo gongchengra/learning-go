@@ -20,7 +20,7 @@ func main() {
 			fmt.Println(cub)
 		}
 	*/
-	filename := "top95.txt"
+	filename := "hard.txt"
 	if len(os.Args) > 1 {
 		filename = os.Args[1]
 	}
