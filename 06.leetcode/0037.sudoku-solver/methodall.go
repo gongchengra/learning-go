@@ -7,72 +7,77 @@ import (
 	"sort"
 )
 
+type kp struct {
+	k int
+	p []byte
+}
+
 func solveSudoku(board [][]byte) {
 	pos := calculatePossibility(board)
 	update(pos)
 	know := deepcopy(pos)
+	printPos(know)
 	cnt := 0
-	for ui, unknow := range unknowCells(pos) {
-		if len(unknow) > 0 {
-			for _, uc := range unknow {
-				pos = deepcopy(know)
-				pos[ui] = []byte{uc}
-				stack := list.New()
-				for {
-					s := status(pos)
-					if s == "solved" {
-						if isValid(pos) {
-							if len(os.Args) > 1 {
-								cnt++
-								if cnt > 10 {
-									printPos(pos)
-									set(pos, board)
-									break
-								}
-							}
-							set(pos, board)
-							return
-						}
-						if stack.Len() == 0 {
-							break
-						} else {
-							v := stack.Remove(stack.Back()).([]byte)
-							k := stack.Remove(stack.Back()).(int)
-							pos = stack.Remove(stack.Back()).([][]byte)
-							pos[k] = []byte{v[0]}
-							update(pos)
-							remain := remove(v, v[0])
-							if len(remain) > 0 {
-								stack.PushBack(deepcopy(pos))
-								stack.PushBack(k)
-								stack.PushBack(remain)
+	for _, unknow := range unknowCells(pos) {
+		for _, uc := range unknow.p {
+			pos = deepcopy(know)
+			pos[unknow.k] = []byte{uc}
+			update(pos)
+			stack := list.New()
+			for {
+				s := status(pos)
+				if s == "solved" {
+					if isValid(pos) {
+						if len(os.Args) > 1 {
+							cnt++
+							if cnt > 10 {
+								printPos(pos)
+								set(pos, board)
+								break
 							}
 						}
+						set(pos, board)
+						return
 					}
-					if s == "unsolved" {
-						stack.PushBack(deepcopy(pos))
-						k, v := leastUnknow(pos)
-						remain := remove(v, v[0])
-						stack.PushBack(k)
-						stack.PushBack(remain)
+					if stack.Len() == 0 {
+						break
+					} else {
+						v := stack.Remove(stack.Back()).([]byte)
+						k := stack.Remove(stack.Back()).(int)
+						pos = stack.Remove(stack.Back()).([][]byte)
 						pos[k] = []byte{v[0]}
 						update(pos)
+						remain := remove(v, v[0])
+						if len(remain) > 0 {
+							stack.PushBack(deepcopy(pos))
+							stack.PushBack(k)
+							stack.PushBack(remain)
+						}
 					}
+				}
+				if s == "unsolved" {
+					stack.PushBack(deepcopy(pos))
+					k, v := leastUnknow(pos)
+					remain := remove(v, v[0])
+					stack.PushBack(k)
+					stack.PushBack(remain)
+					pos[k] = []byte{v[0]}
+					update(pos)
 				}
 			}
 		}
 	}
 }
 
-func unknowCells(pos [][]byte) (res [][]byte) {
+func unknowCells(pos [][]byte) (res []kp) {
 	for i, k := range pos {
-		res = append(res, []byte{})
 		if len(k) > 1 {
-			for _, v := range k {
-				res[i] = append(res[i], v)
-			}
+			res = append(res, kp{i, k})
 		}
 	}
+	sort.Slice(res, func(p, q int) bool {
+		return len(res[p].p) < len(res[q].p)
+	})
 	return
 }
 
