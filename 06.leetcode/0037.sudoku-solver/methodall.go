@@ -15,12 +15,18 @@ type kp struct {
 func solveSudoku(board [][]byte) {
 	pos := calculatePossibility(board)
 	update(pos)
+	if isValid(pos) {
+		set(pos, board)
+		return
+	}
+	//     printPos(pos)
 	know := deepcopy(pos)
 	cnt := 0
 	for _, unknow := range unknowCells(pos) {
 		for _, uc := range unknow.p {
 			pos = deepcopy(know)
 			pos[unknow.k] = []byte{uc}
+			//             fmt.Println("assume ", unknow.k, string(unknow.p))
 			update(pos)
 			stack := list.New()
 			for {
@@ -58,6 +64,7 @@ func solveSudoku(board [][]byte) {
 					stack.PushBack(deepcopy(pos))
 					k, v := leastUnknow(pos)
 					remain := remove(v, v[0])
+					//                     fmt.Println(k, string(v))
 					stack.PushBack(k)
 					stack.PushBack(remain)
 					pos[k] = []byte{v[0]}
@@ -75,7 +82,7 @@ func unknowCells(pos [][]byte) (res []kp) {
 		}
 	}
 	sort.Slice(res, func(p, q int) bool {
-		return len(res[p].p) < len(res[q].p)
+		return len(res[p].p) > len(res[q].p)
 	})
 	return
 }
