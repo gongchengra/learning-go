@@ -28,6 +28,7 @@ func longestValidParentheses(s string) int {
 }
 
 /*
+
 func longestValidParentheses(s string) int {
 	l, r, maxlen := 0, 0, 0
 	for i := 0; i < len(s); i++ {

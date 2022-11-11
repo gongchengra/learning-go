@@ -36,6 +36,7 @@ func l2s(head *ListNode) (res []int) {
 
 // method 1:
 /*
+
 func swapPairs(head *ListNode) *ListNode {
 	tmp := &ListNode{Next: head}
 	for pt := tmp; pt != nil && pt.Next != nil && pt.Next.Next != nil; {
@@ -44,8 +45,8 @@ func swapPairs(head *ListNode) *ListNode {
 	return tmp.Next
 }
 */
-
 // method 2
+
 func swapPairs(head *ListNode) *ListNode {
 	if head == nil || head.Next == nil {
 		return head

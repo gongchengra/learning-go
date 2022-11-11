@@ -4,10 +4,8 @@ func longestPalindrome(s string) string {
 	if len(s) < 2 { // 肯定是回文，直接返回
 		return s
 	}
-
 	// 最长回文的首字符索引，和最长回文的长度
 	begin, maxLen := 0, 1
-
 	// 在 for 循环中
 	// b 代表回文的**首**字符索引号，
 	// e 代表回文的**尾**字符索引号，
@@ -25,23 +23,19 @@ func longestPalindrome(s string) string {
 			// 所以，无需再找下去了。
 			break
 		}
-
 		b, e := i, i
 		for e < len(s)-1 && s[e+1] == s[e] {
 			e++
 			// 循环结束后，s[b:e+1]是一串相同的字符串
 		}
-
 		// 下一个回文的`正中间段`的首字符只会是s[e+1]
 		// 为下一次循环做准备
 		i = e + 1
-
 		for e < len(s)-1 && b > 0 && s[e+1] == s[b-1] {
 			e++
 			b--
 			// 循环结束后，s[b:e+1]是这次能找到的最长回文。
 		}
-
 		newLen := e + 1 - b
 		// 创新记录的话，就更新记录
 		if newLen > maxLen {
@@ -49,6 +43,5 @@ func longestPalindrome(s string) string {
 			maxLen = newLen
 		}
 	}
-
 	return s[begin : begin+maxLen]
 }
