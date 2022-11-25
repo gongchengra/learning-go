@@ -18,7 +18,6 @@ func main() {
 	}
 	wg.Wait()
 	fmt.Println("sum is ", sum)
-
 }
 
 func add(i int) {

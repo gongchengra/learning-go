@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-//  A WaitGroup is used to wait for the program to finish goroutines
+// A WaitGroup is used to wait for the program to finish goroutines
 var wg sync.WaitGroup
 
 // Function that will be called as a Goroutine
