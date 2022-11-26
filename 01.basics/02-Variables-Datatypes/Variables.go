@@ -29,21 +29,21 @@ func main() {
 	fmt.Println(age)
 	{
 		a := [3]int{1, 2, 3}
-		//         a[0], a[1] = 100, 200
 		for k, v := range a {
 			if k == 0 {
-				a[k], a[k+1] = 100, 200
+				a[0], a[1] = 100, 200
 			}
 			a[k] = 100 + v
 		}
-		fmt.Print(a) //数组    101  102  103
+		fmt.Print(a)
 	}
 	{
 		a := []int{1, 2, 3}
 		//         a[0], a[1] = 100, 200
 		for k, v := range a {
 			if k == 0 {
-				a[k], a[k+1] = 100, 200
+				a[0], a[1] = 100, 200
+				//                 a[k], a[k+1] = 100, 200
 			}
 			a[k] = 100 + v
 		}
