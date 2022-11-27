@@ -34,19 +34,19 @@ func main() {
 				a[0], a[1] = 100, 200
 			}
 			a[k] = 100 + v
+			fmt.Printf("%T %p\n", v, &v)
 		}
-		fmt.Print(a)
+		fmt.Println(a) //数组    101  102  103
 	}
 	{
 		a := []int{1, 2, 3}
-		//         a[0], a[1] = 100, 200
 		for k, v := range a {
 			if k == 0 {
 				a[0], a[1] = 100, 200
-				//                 a[k], a[k+1] = 100, 200
 			}
 			a[k] = 100 + v
+			fmt.Printf("%T %p\n", v, &v)
 		}
-		fmt.Print(a) //数组    101  102  103
+		fmt.Println(a) //数组    101  300  103
 	}
 }
