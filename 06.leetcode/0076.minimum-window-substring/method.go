@@ -34,5 +34,4 @@ func minWindow(s string, t string) string {
 		return ""
 	}
 	return s[wbegin : wend+1]
-
 }

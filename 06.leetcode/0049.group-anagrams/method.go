@@ -27,5 +27,4 @@ func sortString(s string) string {
 		bytes[i] = byte(v)
 	}
 	return string(bytes)
-
 }

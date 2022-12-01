@@ -34,23 +34,22 @@ func getDaddy(head *ListNode, n int) (daddy *ListNode, headIsNthFromEnd bool) {
 }
 
 // convert *ListNode to []int
+
 func l2s(head *ListNode) []int {
 	res := []int{}
-
 	for head != nil {
 		res = append(res, head.Val)
 		head = head.Next
 	}
-
 	return res
 }
 
 // convert []int to *ListNode
+
 func s2l(nums []int) *ListNode {
 	if len(nums) == 0 {
 		return nil
 	}
-
 	res := &ListNode{
 		Val: nums[0],
 	}
@@ -61,6 +60,5 @@ func s2l(nums []int) *ListNode {
 		}
 		temp = temp.Next
 	}
-
 	return res
 }
