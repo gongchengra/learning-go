@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -33,10 +34,15 @@ func main() {
 			filename := d.Name()
 			match, _ := regexp.Match(`^[0-9a-zA-Z]`, []byte(filename))
 			if match == false {
-				re := regexp.MustCompile(`[\pP]+`)
-				ext := filepath.Ext(filename)
-				file := strings.TrimSuffix(filename, ext)
-				newname := strToRuneSumString(file) + re.ReplaceAllString(file, "") + ext
+				newname := ""
+				for _, runeValue := range filename {
+					if unicode.Is(unicode.Han, runeValue) || unicode.IsNumber(runeValue) || unicode.IsLetter(runeValue) || runeValue == '.' {
+						newname += string(runeValue)
+					}
+				}
+				ext := filepath.Ext(newname)
+				file := strings.TrimSuffix(newname, ext)
+				newname = strToRuneSumString(file) + ext
 				fmt.Println("Renamed ", filename, " to ", newname)
 				e := os.Rename(filename, newname)
 				if e != nil {
