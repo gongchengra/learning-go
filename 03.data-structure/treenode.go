@@ -1,5 +1,10 @@
 package main
 
+type ListNode struct {
+	Val  int
+	Next *ListNode
+}
+
 type TreeNode struct {
 	Val   int
 	Left  *TreeNode
@@ -7,6 +12,19 @@ type TreeNode struct {
 }
 
 var NULL = -1 << 63
+
+func Ints2ListNode(ints []int) *ListNode {
+	if len(ints) == 0 {
+		return nil
+	}
+	res := &ListNode{Val: ints[0]}
+	tmp := res
+	for i :=1; i < len(ints); i++ {
+		tmp.Next = &ListNode{Val:ints[i]}
+		tmp = tmp.Next
+	}
+	return res
+}
 
 func Ints2TreeNode(ints []int) *TreeNode {
 	n := len(ints)
