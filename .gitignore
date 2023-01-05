@@ -15,6 +15,6 @@
 glide.lock
 
 tmp/
-
+**/vendor/
 .idea
 *.log

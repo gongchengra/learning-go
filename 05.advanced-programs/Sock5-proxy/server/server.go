@@ -2,7 +2,8 @@ package main
 
 import (
 	"log"
-	"socks5"
+
+	"github.com/oov/socks5"
 )
 
 func main() {

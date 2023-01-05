@@ -1,0 +1,4 @@
+github.com/oov/socks5 v0.0.0-20140128013319-670e81bc60ec h1:g9gusUErJUs9t8N20rtrN7OiLpwtXGHFN4Tyf3/SPKM=
+github.com/oov/socks5 v0.0.0-20140128013319-670e81bc60ec/go.mod h1:6o8M607vlv0JuCv+Iyunktg3E4sGTeS7VzRjPnA3bBY=
+golang.org/x/net v0.5.0 h1:GyT4nK/YDHSqa1c4753ouYCDajOYKTja9Xb/OHtgvSw=
+golang.org/x/net v0.5.0/go.mod h1:DivGGAXEgPSlEBzxGzZI+ZLohi+xUj054jfeKui00ws=
