@@ -1,14 +1,12 @@
 package main
 
 import (
-	"log"
-
 	"github.com/oov/socks5"
+	"log"
 )
 
 func main() {
 	srv := socks5.New()
-
 	srv.AuthNoAuthenticationRequiredCallback = func(c *socks5.Conn) error {
 		return nil
 	}

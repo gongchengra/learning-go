@@ -2,12 +2,11 @@ package main
 
 import (
 	"fmt"
+	"golang.org/x/net/proxy"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-
-	"golang.org/x/net/proxy"
 )
 
 func main() {
