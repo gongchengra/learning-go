@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	openai "github.com/sashabaranov/go-openai"
 	"os"
-
-	gogpt "github.com/sashabaranov/go-gpt3"
+	"strings"
 )
 
 func main() {
@@ -16,21 +16,32 @@ func main() {
 		return
 	}
 	var prompt string
-	fmt.Printf("Please enter prompt: ")
 	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	prompt = scanner.Text()
-	c := gogpt.NewClient(token)
-	ctx := context.Background()
-	req := gogpt.CompletionRequest{
-		Model: gogpt.GPT3TextDavinci003,
-		//Model:     gogpt.CodexCodeDavinci002,
-		MaxTokens: 500,
-		Prompt:    prompt,
+	fmt.Println("Please enter prompt: ")
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.TrimSpace(line) == "EOF" {
+			break
+		}
+		prompt += line
 	}
-	resp, err := c.CreateCompletion(ctx, req)
+	fmt.Println("waiting: ")
+	client := openai.NewClient(token)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: prompt,
+				},
+			},
+		},
+	)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
-	fmt.Println(resp.Choices[0].Text)
+	fmt.Println(resp.Choices[0].Message.Content)
 }

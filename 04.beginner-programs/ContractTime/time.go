@@ -8,6 +8,7 @@ import (
 
 func main() {
 	now := time.Now()
+	fmt.Println(now.Unix())
 	fmt.Println("The current datetime is:", now)
 	fmt.Println("Year:", now.Year())
 	fmt.Println("Month:", now.Month())
