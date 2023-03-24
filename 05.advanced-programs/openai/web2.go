@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"os"
-
 	gpt35 "github.com/AlmazDelDiablo/gpt3-5-turbo-go"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"os"
 )
 
 func chat(input string) (output string) {

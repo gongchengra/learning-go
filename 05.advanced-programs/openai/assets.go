@@ -1,9 +1,8 @@
 package main
 
 import (
-	"time"
-
 	"github.com/jessevdk/go-assets"
+	"time"
 )
 
 var _Assets3737a75b5254ed1f6d588b40a3449721f9ea86c2 = "<!DOCTYPE html>\n<html>\n    <head>\n        <title>Input prompt</title>\n        <meta charset=\"utf-8\" />\n        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    </head>\n    <body>\n\t\t<h1>Chat with AI</h1>\n        <p> Enter the command in the text box below, such as \"Translate the following paragraph into Chinese: Enter the command in the text box below.\" or \"Write an email in French to Mr. Anderson, explaining that due to delivery reasons, his mattress will only be delivered to his home at the end of next month. We apologize for the inconvenience.\" For guidance on how to create clear and effective prompt guidelines, please refer to the website <a href=\"https://openai.wiki/chatgpt-prompting-guide-book.html\" target=\"_blank\">https://openai.wiki/chatgpt-prompting-guide-book.html</a>.\n        <form method=\"post\">\n            <textarea name=\"input\" id=\"input\" cols=\"80\" rows=\"10\" placeholder=\"Enter your prompt here\">{{.input}}</textarea>\n            <input type=\"submit\" id=\"submit\" value=\"Submit\" style=\"display:block;\">\n        </form>\n        {{.output}}\n    </body>\n</html>\n\n"

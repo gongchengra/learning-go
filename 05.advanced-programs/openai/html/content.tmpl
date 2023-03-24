@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Contents</title>
+        <style>
+        .nav {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            padding: 10px;
+            background-color: #fff; /* changed to white */
+            color: #333; /* changed text color to dark */
+            font-size: 20px;
+            font-weight: bold;
+        }
+        </style>
+    </head>
+    <body>
+        <div class="nav">
+            <a href="/">Homepage</a>
+            <a href="/contents">Contents</a>
+            <a href="/users">Users</a>
+            <a href="/logout">Logout</a>
+        </div>
+        <h1>Contents</h1>
+		{{ if .prevPage }}
+			<a href="{{ .prevPage }}">Previous Page</a>
+		{{ end }}
+		{{ range .contents }}
+			<div>Question from User <a href="/user?id={{.UserID}}" target="_blank">{{.UserID}}</a>: <pre>{{.Prompt}}</pre></div>
+			<div>Answer from AI:<pre>{{.Answer}}</pre></div>
+			<div>Delete this question: <a href="/contentdel?id={{.ID}}">delete</a></div>
+			<br/>
+		{{ end }}
+		{{ if .nextPage }}
+			<a href="{{ .nextPage }}">Next Page</a>
+		{{ end }}
+    </body>
+</html>
+
+

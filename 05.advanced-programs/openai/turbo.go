@@ -74,6 +74,7 @@ func main() {
 		fmt.Println(err)
 	}
 	defer f.Close()
+	f.WriteString(prompt)
 	f.WriteString(content)
 	println(content)
 	println(resp.Usage.PromptTokens)

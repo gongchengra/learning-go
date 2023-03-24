@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	openai "github.com/sashabaranov/go-openai"
 	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/gin-gonic/gin"
-	openai "github.com/sashabaranov/go-openai"
 )
 
 func chat(input string) (output string) {

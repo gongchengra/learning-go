@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Input prompt</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+        textarea {
+            width: 80%;
+            height: 50%;
+            resize: none;
+        }
+        </style>
+    </head>
+    <body>
+        <h1>Notes</h1>
+        {{ range .notes }}
+            <div>Note Txt: <pre>{{.Txt}}</pre></div>
+            <div><a href="/notedel?id={{.ID}}">delete</a></div>
+            <br/>
+        {{ end }}
+
+        <h2> Add a new note </h2>
+        <form action="/" method="post">
+            <textarea name="note" id="note" cols="80" rows="10" placeholder="Enter your note here">{{.note}}</textarea>
+            <input type="submit" id="submit" value="Submit" style="display:block;">
+        </form>
+    </body>
+</html>
+
+
