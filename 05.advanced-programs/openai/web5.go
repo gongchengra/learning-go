@@ -2,20 +2,20 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
-	"html/template"
-	"log"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
-
 	gpt35 "github.com/AlmazDelDiablo/gpt3-5-turbo-go"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
+	"html/template"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
 )
 
 const userkey = "user"
@@ -89,7 +89,7 @@ func findUser(db *sql.DB, id int) (User, error) {
 }
 
 func getUsers(db *sql.DB) ([]User, error) {
-	rows, err := db.Query("SELECT * FROM users")
+	rows, err := db.Query("SELECT id, username, password FROM users")
 	if err != nil {
 		return nil, err
 	}
@@ -300,6 +300,14 @@ func addContentHandler(c *gin.Context) {
 
 func delContentHandler(c *gin.Context) {
 	db := c.MustGet("db").(*sql.DB)
+	session := sessions.Default(c)
+	user := session.Get(userkey)
+	var role int
+	db.QueryRow("SELECT role_id FROM users where id = ?", user).Scan(&role)
+	if role != 1 {
+		c.HTML(http.StatusInternalServerError, "content.tmpl", gin.H{"error": "Please login in as admin"})
+		return
+	}
 	id, _ := strconv.Atoi(c.Query("id"))
 	err := delContent(db, id)
 	if err != nil {
@@ -339,11 +347,24 @@ func main() {
 	}))
 	r.GET("/user", withLogin(func(c *gin.Context) {
 		id, _ := strconv.Atoi(c.Query("id"))
+		if id == 0 {
+			session := sessions.Default(c)
+			user := session.Get(userkey)
+			id = user.(int)
+		}
 		foundUser, _ := findUser(db, id)
 		c.HTML(http.StatusOK, "user.tmpl", gin.H{"user": foundUser})
 	}))
 	r.POST("/useradd", withLogin(register))
 	r.GET("/userdel", withLogin(func(c *gin.Context) {
+		session := sessions.Default(c)
+		user := session.Get(userkey)
+		var role int
+		db.QueryRow("SELECT role_id FROM users where id = ?", user).Scan(&role)
+		if role != 1 {
+			c.HTML(http.StatusNotFound, "user.tmpl", gin.H{"message": errors.New("Please login in as admin")})
+			return
+		}
 		id, _ := strconv.Atoi(c.Query("id"))
 		err := delUser(db, id)
 		if err != nil {
@@ -372,8 +393,9 @@ func main() {
 		})
 	}))
 	r.GET("/contentdel", withLogin(delContentHandler))
-	r.Run(":8080")
+	r.Run(":8081")
 }
+
 func nl2br(str string) template.HTML {
 	return template.HTML(strings.ReplaceAll(str, "\n", "<br>"))
 }

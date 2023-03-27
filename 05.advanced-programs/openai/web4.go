@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -86,6 +87,9 @@ func findUser(c *gin.Context) {
 		return
 	} else {
 		id := c.Query("id")
+		if id == "" {
+			id = strconv.Itoa(user.(int))
+		}
 		db, err := sql.Open("sqlite3", "./chat.db")
 		if err != nil {
 			log.Fatal(err)
@@ -119,7 +123,7 @@ func getUser(c *gin.Context) {
 			log.Fatal(err)
 		}
 		defer db.Close()
-		rows, err := db.Query("SELECT * FROM users")
+		rows, err := db.Query("SELECT id, username, password FROM users")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -154,6 +158,13 @@ func addUser(c *gin.Context) {
 			log.Fatal(err)
 		}
 		defer db.Close()
+		var role int
+		db.QueryRow("SELECT role_id FROM users where id = ?", user).Scan(&role)
+		log.Println("role id", user, role)
+		if role != 1 {
+			c.HTML(http.StatusNotFound, "user.tmpl", gin.H{"message": "Please login in as admin"})
+			return
+		}
 		username := c.PostForm("username")
 		password := c.PostForm("password")
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -187,6 +198,12 @@ func delUser(c *gin.Context) {
 			log.Fatal(err)
 		}
 		defer db.Close()
+		var role int
+		db.QueryRow("SELECT role_id FROM users where id = ?", user).Scan(&role)
+		if role != 1 {
+			c.HTML(http.StatusNotFound, "user.tmpl", gin.H{"message": "Please login in as admin"})
+			return
+		}
 		stmt, err := db.Prepare("DELETE FROM users WHERE id = ?")
 		if err != nil {
 			log.Fatal(err)
@@ -242,10 +259,45 @@ func getContent(c *gin.Context) {
 	}
 }
 
-func addContent(c *gin.Context) {
-}
-
 func delContent(c *gin.Context) {
+	session := sessions.Default(c)
+	user := session.Get(userkey)
+	if user == nil {
+		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{})
+		c.Abort()
+		return
+	} else {
+		id := c.Query("id")
+		db, err := sql.Open("sqlite3", "./chat.db")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+		var role int
+		db.QueryRow("SELECT role_id FROM users where id = ?", user).Scan(&role)
+		log.Println("role id", user, role)
+		if role != 1 {
+			c.HTML(http.StatusUnauthorized, "content.tmpl", gin.H{"message": "Please login in as admin"})
+			return
+		}
+		stmt, err := db.Prepare("DELETE FROM contents WHERE id = ?")
+		if err != nil {
+			log.Fatal(err)
+		}
+		res, err := stmt.Exec(id)
+		if err != nil {
+			log.Fatal(err)
+		}
+		rowsAffected, err := res.RowsAffected()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if rowsAffected == 0 {
+			c.HTML(http.StatusNotFound, "content.tmpl", gin.H{"message": "Content not found"})
+			return
+		}
+		c.Redirect(http.StatusSeeOther, "/contents")
+	}
 }
 
 func logout(c *gin.Context) {
@@ -346,7 +398,6 @@ func main() {
 	router.POST("/useradd", addUser)
 	router.GET("/userdel", delUser)
 	router.GET("/contents", getContent)
-	router.POST("/contentadd", addContent)
 	router.GET("/contentdel", delContent)
 	router.GET("/logout", logout)
 	router.NoRoute(func(c *gin.Context) {

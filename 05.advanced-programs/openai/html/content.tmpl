@@ -25,18 +25,22 @@
             <a href="/logout">Logout</a>
         </div>
         <h1>Contents</h1>
-		{{ if .prevPage }}
-			<a href="{{ .prevPage }}">Previous Page</a>
-		{{ end }}
-		{{ range .contents }}
-			<div>Question from User <a href="/user?id={{.UserID}}" target="_blank">{{.UserID}}</a>: <pre>{{.Prompt}}</pre></div>
-			<div>Answer from AI:<pre>{{.Answer}}</pre></div>
-			<div>Delete this question: <a href="/contentdel?id={{.ID}}">delete</a></div>
-			<br/>
-		{{ end }}
-		{{ if .nextPage }}
-			<a href="{{ .nextPage }}">Next Page</a>
-		{{ end }}
+        {{ if .error }}
+            <p style="color:red">{{.error}}</p>
+        {{ else }}
+			{{ if .prevPage }}
+				<a href="{{ .prevPage }}">Previous Page</a>
+			{{ end }}
+			{{ range .contents }}
+				<div>Question from User <a href="/user?id={{.UserID}}" target="_blank">{{.UserID}}</a>: <pre>{{.Prompt}}</pre></div>
+				<div>Answer from AI:<pre>{{.Answer}}</pre></div>
+				<div>Delete this question: <a href="/contentdel?id={{.ID}}">delete</a></div>
+				<br/>
+			{{ end }}
+			{{ if .nextPage }}
+				<a href="{{ .nextPage }}">Next Page</a>
+			{{ end }}
+        {{ end }}
     </body>
 </html>
 
