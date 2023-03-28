@@ -2,13 +2,14 @@ package main
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
-	_ "github.com/mattn/go-sqlite3"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Note struct {
@@ -27,7 +28,7 @@ func openDB() {
 }
 
 func getNote(c *gin.Context) {
-	rows, err := db.Query("SELECT id, note FROM notes")
+	rows, err := db.Query("SELECT id, note FROM notes where is_deleted = 0")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,6 +47,30 @@ func getNote(c *gin.Context) {
 		log.Fatal(err)
 	}
 	c.HTML(http.StatusOK, "/note.tmpl", gin.H{
+		"notes": notes,
+	})
+}
+
+func getNoteAll(c *gin.Context) {
+	rows, err := db.Query("SELECT id, note FROM notes")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	var notes []Note
+	for rows.Next() {
+		var note Note
+		err := rows.Scan(&note.ID, &note.Txt)
+		if err != nil {
+			log.Fatal(err)
+		}
+		notes = append(notes, note)
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+	c.HTML(http.StatusOK, "/notes.tmpl", gin.H{
 		"notes": notes,
 	})
 }
@@ -85,6 +110,28 @@ func delNote(c *gin.Context) {
 	c.Redirect(http.StatusSeeOther, "/")
 }
 
+func softDeleteNote(c *gin.Context) {
+	id := c.Query("id")
+	stmt, err := db.Prepare("UPDATE notes SET is_deleted = ? WHERE id = ?")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+	res, err := stmt.Exec(1, id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rowsAffected == 0 {
+		c.HTML(http.StatusNotFound, "/note.tmpl", gin.H{"message": "Note not found"})
+		return
+	}
+	c.Redirect(http.StatusSeeOther, "/")
+}
+
 func main() {
 	openDB()
 	defer db.Close()
@@ -96,8 +143,10 @@ func main() {
 	router := gin.Default()
 	router.SetHTMLTemplate(t)
 	router.GET("/", getNote)
+	router.GET("/all", getNoteAll)
 	router.POST("/", addNote)
-	router.GET("/notedel", delNote)
+	router.GET("/notedel", softDeleteNote)
+	router.GET("/del", delNote)
 	defer db.Close()
 	router.Run(":8080")
 }

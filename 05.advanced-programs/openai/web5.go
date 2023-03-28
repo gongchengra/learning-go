@@ -19,6 +19,7 @@ import (
 )
 
 const userkey = "user"
+const userrole = "role"
 
 type User struct {
 	ID       int    `json:"id"`
@@ -226,7 +227,8 @@ func login(c *gin.Context) {
 	var id int
 	var dbUsername string
 	var dbPassword string
-	err := db.QueryRow("SELECT id, username, password FROM users WHERE username=?", username).Scan(&id, &dbUsername, &dbPassword)
+	var role int
+	err := db.QueryRow("SELECT id, username, password, role_id FROM users WHERE username=?", username).Scan(&id, &dbUsername, &dbPassword, &role)
 	if err != nil {
 		log.Println(err)
 		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{"error": "Invalid user"})
@@ -234,6 +236,7 @@ func login(c *gin.Context) {
 	}
 	if CheckPassword(dbPassword, password) {
 		session.Set(userkey, id)
+		session.Set(userrole, role)
 		if err := session.Save(); err != nil {
 			c.HTML(http.StatusInternalServerError, "login.tmpl", gin.H{"error": "Failed to save session"})
 			return
@@ -301,11 +304,9 @@ func addContentHandler(c *gin.Context) {
 func delContentHandler(c *gin.Context) {
 	db := c.MustGet("db").(*sql.DB)
 	session := sessions.Default(c)
-	user := session.Get(userkey)
-	var role int
-	db.QueryRow("SELECT role_id FROM users where id = ?", user).Scan(&role)
+	role := session.Get(userrole)
 	if role != 1 {
-		c.HTML(http.StatusInternalServerError, "content.tmpl", gin.H{"error": "Please login in as admin"})
+		c.HTML(http.StatusUnauthorized, "content.tmpl", gin.H{"error": "Please login in as admin"})
 		return
 	}
 	id, _ := strconv.Atoi(c.Query("id"))
@@ -327,9 +328,6 @@ func main() {
 	store := cookie.NewStore(secret)
 	r := gin.Default()
 	r.Use(sessions.Sessions("mysession", store))
-	r.SetFuncMap(template.FuncMap{
-		"nl2br": nl2br,
-	})
 	r.LoadHTMLGlob("html/*")
 	r.Use(func(c *gin.Context) {
 		c.Set("db", db)
@@ -343,7 +341,9 @@ func main() {
 	r.POST("/input", withLogin(addContentHandler))
 	r.GET("/users", withLogin(func(c *gin.Context) {
 		users, _ := getUsers(db)
-		c.HTML(http.StatusOK, "user.tmpl", gin.H{"users": users})
+		session := sessions.Default(c)
+		role := session.Get(userrole)
+		c.HTML(http.StatusOK, "user.tmpl", gin.H{"users": users, "role": role})
 	}))
 	r.GET("/user", withLogin(func(c *gin.Context) {
 		id, _ := strconv.Atoi(c.Query("id"))
@@ -358,9 +358,7 @@ func main() {
 	r.POST("/useradd", withLogin(register))
 	r.GET("/userdel", withLogin(func(c *gin.Context) {
 		session := sessions.Default(c)
-		user := session.Get(userkey)
-		var role int
-		db.QueryRow("SELECT role_id FROM users where id = ?", user).Scan(&role)
+		role := session.Get(userrole)
 		if role != 1 {
 			c.HTML(http.StatusNotFound, "user.tmpl", gin.H{"message": errors.New("Please login in as admin")})
 			return

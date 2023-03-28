@@ -277,7 +277,7 @@ func delContent(c *gin.Context) {
 		db.QueryRow("SELECT role_id FROM users where id = ?", user).Scan(&role)
 		log.Println("role id", user, role)
 		if role != 1 {
-			c.HTML(http.StatusUnauthorized, "content.tmpl", gin.H{"message": "Please login in as admin"})
+			c.HTML(http.StatusUnauthorized, "content.tmpl", gin.H{"error": "Please login in as admin"})
 			return
 		}
 		stmt, err := db.Prepare("DELETE FROM contents WHERE id = ?")
