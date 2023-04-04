@@ -15,6 +15,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -35,11 +36,16 @@ type Content struct {
 	UserID int    `json:"userid"`
 }
 
-var secret = []byte("NShJJ6paNtiRSYne")
+var secret []byte
 var token string
 
 func init() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("error getting env variables: %s", err)
+	}
 	token = os.Getenv("token")
+	secret = []byte(os.Getenv("secret"))
 	if len(token) == 0 {
 		log.Fatal("Token not found")
 	}

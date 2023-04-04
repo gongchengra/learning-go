@@ -2,12 +2,16 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -101,4 +105,21 @@ func delUser(db *sql.DB, id int) error {
 		return fmt.Errorf("User not found")
 	}
 	return nil
+}
+
+func delUserHandler(c *gin.Context) {
+	db := c.MustGet("db").(*sql.DB)
+	session := sessions.Default(c)
+	role := session.Get(userrole)
+	if role != 1 {
+		c.HTML(http.StatusNotFound, "user.tmpl", gin.H{"message": errors.New("Please login in as admin")})
+		return
+	}
+	id, _ := strconv.Atoi(c.Query("id"))
+	err := delUser(db, id)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "user.tmpl", gin.H{"message": err})
+	} else {
+		c.Redirect(http.StatusSeeOther, "/users")
+	}
 }

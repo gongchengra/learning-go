@@ -36,6 +36,16 @@ func getContent(db *sql.DB) ([]Content, error) {
 	return contents, rows.Err()
 }
 
+func getLastContent(db *sql.DB, userID int) (Content, error) {
+	row := db.QueryRow("SELECT id, prompt, answer, userid FROM contents WHERE userid=? AND is_deleted=0 ORDER BY id DESC LIMIT 1", userID)
+	var content Content
+	err := row.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID)
+	if err != nil {
+		return Content{}, err
+	}
+	return content, nil
+}
+
 func getPageOfContent(db *sql.DB, user int, page int, pageSize int) ([]Content, bool) {
 	if page < 1 {
 		page = 1
@@ -45,7 +55,6 @@ func getPageOfContent(db *sql.DB, user int, page int, pageSize int) ([]Content, 
 	}
 	offset := (page - 1) * pageSize
 	query := fmt.Sprintf("SELECT id, prompt, answer, userid FROM contents where is_deleted = 0 and userid = %d LIMIT %d OFFSET %d", user, pageSize, offset)
-	log.Println(query)
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, false
@@ -65,7 +74,6 @@ func getPageOfContent(db *sql.DB, user int, page int, pageSize int) ([]Content, 
 	}
 	queryCount := fmt.Sprintf("SELECT count(*) FROM contents where is_deleted = 0 and userid = %d", user)
 	db.QueryRow(queryCount).Scan(&totalRows)
-	log.Println(totalRows)
 	hasNextPage := (totalRows > offset+len(contents))
 	return contents, hasNextPage
 }
@@ -108,11 +116,26 @@ func addContentHandler(c *gin.Context) {
 	session := sessions.Default(c)
 	userID := session.Get(userkey).(int)
 	input := c.PostForm("input")
-	output := chat(input)
+	checked := false
+	continueVal := c.PostForm("continue")
+	if continueVal == "yes" {
+		checked = true
+	}
+	context := ""
+	if checked {
+		lastContent, err := getLastContent(db, userID)
+		if err == nil {
+			context = lastContent.Prompt + lastContent.Answer
+		}
+	}
+	output := chat(input, context)
 	c.HTML(http.StatusOK, "input.tmpl", gin.H{
 		"input":  input,
 		"output": output,
 	})
+	if context != "" {
+		input = context + input
+	}
 	err := addContent(db, input, output, userID)
 	if err != nil {
 		log.Println(err)

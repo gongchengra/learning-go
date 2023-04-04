@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -19,7 +18,7 @@ import (
 const userkey = "user"
 const userrole = "role"
 
-var secret = []byte("NShJJ6paNtiRSYne")
+var secret []byte
 var token string
 
 func init() {
@@ -28,6 +27,7 @@ func init() {
 		log.Fatal("error getting env variables: %s", err)
 	}
 	token = os.Getenv("token")
+	secret = []byte(os.Getenv("secret"))
 	if len(token) == 0 {
 		log.Fatal("Token not found")
 	}
@@ -112,12 +112,6 @@ func main() {
 		role := session.Get(userrole)
 		c.HTML(http.StatusOK, "user.tmpl", gin.H{"users": users, "role": role})
 	}))
-	r.GET("/api/users", withLogin(func(c *gin.Context) {
-		users, _ := getUsers(db)
-		session := sessions.Default(c)
-		role := session.Get(userrole)
-		c.JSON(http.StatusOK, gin.H{"users": users, "role": role})
-	}))
 	r.GET("/user", withLogin(func(c *gin.Context) {
 		id, _ := strconv.Atoi(c.Query("id"))
 		if id == 0 {
@@ -129,21 +123,7 @@ func main() {
 		c.HTML(http.StatusOK, "user.tmpl", gin.H{"user": foundUser})
 	}))
 	r.POST("/useradd", withLogin(register))
-	r.GET("/userdel", withLogin(func(c *gin.Context) {
-		session := sessions.Default(c)
-		role := session.Get(userrole)
-		if role != 1 {
-			c.HTML(http.StatusNotFound, "user.tmpl", gin.H{"message": errors.New("Please login in as admin")})
-			return
-		}
-		id, _ := strconv.Atoi(c.Query("id"))
-		err := delUser(db, id)
-		if err != nil {
-			c.HTML(http.StatusNotFound, "user.tmpl", gin.H{"message": err})
-		} else {
-			c.Redirect(http.StatusSeeOther, "/users")
-		}
-	}))
+	r.GET("/userdel", withLogin(delUserHandler))
 	r.GET("/logout", logout)
 	r.GET("/contents", withLogin(getContentHandler))
 	r.POST("/contents", withLogin(searchContentHandler))
