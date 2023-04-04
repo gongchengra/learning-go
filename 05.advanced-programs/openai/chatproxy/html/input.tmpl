@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Input prompt</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+        .nav {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            padding: 10px;
+            background-color: #fff; /* changed to white */
+            color: #333; /* changed text color to dark */
+            font-size: 20px;
+            font-weight: bold;
+        }
+        textarea {
+            width: 80%;
+            height: 50%;
+            resize: none;
+        }
+        </style>
+    </head>
+    <body>
+        <div class="nav">
+            <a href="/">Homepage</a>
+            <a href="/contents">Contents</a>
+            <a href="/logout">Logout</a>
+        </div>
+        <h1>Chat with AI</h1>
+        <p> Enter the command in the text box below, such as "Translate the following paragraph into Chinese: Enter the command in the text box below." or "Write an email in French to Mr. Anderson, explaining that due to delivery reasons, his mattress will only be delivered to his home at the end of next month. We apologize for the inconvenience." For guidance on how to create clear and effective prompt guidelines, please refer to the website <a href="https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api" target="_blank">https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api</a>.</p>
+        <p>在下方的文本框中输入命令，例如“将以下段落翻译成英文：在下方文本框中输入命令。”或“写一封法语电子邮件给安德森先生，解释由于交货原因，他的床垫只能在下个月末送到他家。为给您带来不便，我们深感抱歉。”如需了解如何编写明确有效的提示指南，请参阅网站 <a href="https://openai.wiki/chatgpt-prompting-guide-book.html" target="_blank">https://openai.wiki/chatgpt-prompting-guide-book.html</a>。</p>
+        <form action="/input" method="post">
+            <textarea name="input" id="input" cols="80" rows="10" placeholder="Enter your prompt here">{{.input}}</textarea>
+            <input type="submit" id="submit" value="Submit" style="display:block;">
+        </form>
+        <br/><pre>
+        {{.output}}
+        </pre>
+    </body>
+</html>
+

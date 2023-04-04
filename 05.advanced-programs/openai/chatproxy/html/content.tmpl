@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Contents</title>
+        <style>
+        .nav {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            padding: 10px;
+            background-color: #fff; /* changed to white */
+            color: #333; /* changed text color to dark */
+            font-size: 20px;
+            font-weight: bold;
+        }
+        </style>
+    </head>
+    <body>
+        <div class="nav">
+            <a href="/">Homepage</a>
+            <a href="/contents">Contents</a>
+            <a href="/logout">Logout</a>
+        </div>
+        <h1>Contents</h1>
+        <form action="/contents" method="post">
+            <label for="username">Search:</label>
+            <input type="text" id="search" name="search"><br>
+            <input type="submit" value="Submit">
+        </form>
+        <br />
+        {{ if .error }}
+            <p style="color:red">{{.error}}</p>
+        {{ else }}
+			{{ if .prevPage }}
+				<a href="{{ .prevPage }}">Previous Page</a>
+			{{ end }}
+			{{ range .contents }}
+				<div>Question from User: <pre>{{.Prompt}}</pre></div>
+				<div>Answer from AI:<pre>{{.Answer}}</pre></div>
+				<div>Delete this question: <a href="/contentdel?id={{.ID}}">delete</a></div>
+				<br/>
+			{{ end }}
+			{{ if .nextPage }}
+				<a href="{{ .nextPage }}">Next Page</a>
+			{{ end }}
+        {{ end }}
+    </body>
+</html>
+
+

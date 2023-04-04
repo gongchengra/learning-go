@@ -2,14 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"github.com/gin-gonic/gin"
+	_ "github.com/mattn/go-sqlite3"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
-
-	"github.com/gin-gonic/gin"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type Note struct {

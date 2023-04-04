@@ -4,18 +4,19 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	gpt35 "github.com/AlmazDelDiablo/gpt3-5-turbo-go"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-gonic/gin"
-	_ "github.com/mattn/go-sqlite3"
-	"golang.org/x/crypto/bcrypt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+
+	gpt35 "github.com/AlmazDelDiablo/gpt3-5-turbo-go"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-gonic/gin"
+	_ "github.com/mattn/go-sqlite3"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const userkey = "user"
@@ -320,7 +321,7 @@ func delContentHandler(c *gin.Context) {
 }
 
 func main() {
-	db, err := sql.Open("sqlite3", "./data.db")
+	db, err := sql.Open("sqlite3", "./chat.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -391,7 +392,7 @@ func main() {
 		})
 	}))
 	r.GET("/contentdel", withLogin(delContentHandler))
-	r.Run(":8081")
+	r.Run(":8080")
 }
 
 func nl2br(str string) template.HTML {
