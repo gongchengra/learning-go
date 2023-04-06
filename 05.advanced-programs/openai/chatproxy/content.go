@@ -77,29 +77,6 @@ func getPageOfContent(db *sql.DB, user int, page int, pageSize int) ([]Content, 
 	return contents, hasNextPage
 }
 
-func getContentHandler(c *gin.Context) {
-	db := c.MustGet("db").(*sql.DB)
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pagesize, _ := strconv.Atoi(c.DefaultQuery("pagesize", "5"))
-	session := sessions.Default(c)
-	user := session.Get(userkey)
-	id := user.(int)
-	contents, hasNextPage := getPageOfContent(db, id, page, pagesize)
-	prevPage := ""
-	if page > 1 {
-		prevPage = fmt.Sprintf("/contents?page=%d&pagesize=%d", page-1, pagesize)
-	}
-	nextPage := ""
-	if hasNextPage {
-		nextPage = fmt.Sprintf("/contents?page=%d&pagesize=%d", page+1, pagesize)
-	}
-	c.HTML(http.StatusOK, "content.tmpl", gin.H{
-		"contents": contents,
-		"prevPage": prevPage,
-		"nextPage": nextPage,
-	})
-}
-
 func addContent(db *sql.DB, input, output string, userID int) error {
 	statement, err := db.Prepare("INSERT INTO contents (prompt, answer, userid) VALUES (?, ?, ?)")
 	if err != nil {
@@ -226,17 +203,123 @@ func searchContent(db *sql.DB, search string) ([]Content, error) {
 	return contents, nil
 }
 
-func searchContentHandler(c *gin.Context) {
+func getPageOfSearchResults(db *sql.DB, user int, search string, page int, pageSize int) ([]Content, bool, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 5
+	}
+	offset := (page - 1) * pageSize
+	query := fmt.Sprintf("SELECT id, prompt, answer, userid FROM contents where is_deleted = 0 and userid = %d and (prompt LIKE '%%%s%%' OR answer LIKE '%%%s%%') LIMIT %d OFFSET %d", user, search, search, pageSize, offset)
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, false, err
+	}
+	defer rows.Close()
+	var (
+		contents  []Content
+		totalRows int
+	)
+	for rows.Next() {
+		var content Content
+		if err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID); err != nil {
+			return nil, false, err
+		}
+		contents = append(contents, content)
+	}
+	queryCount := fmt.Sprintf("SELECT count(*) FROM contents where is_deleted = 0 and userid = %d and (prompt LIKE '%%%s%%' OR answer LIKE '%%%s%%')", user, search, search)
+	if err := db.QueryRow(queryCount).Scan(&totalRows); err != nil {
+		return nil, false, err
+	}
+	hasNextPage := (totalRows > offset+len(contents))
+	return contents, hasNextPage, nil
+}
+
+func contentHandler(c *gin.Context) {
 	db := c.MustGet("db").(*sql.DB)
 	session := sessions.Default(c)
-	_ = session.Get(userkey).(int)
-	search := c.PostForm("search")
-	contents, err := searchContent(db, search)
-	if err != nil {
-		c.HTML(http.StatusInternalServerError, "content.tmpl", gin.H{"error": "Failed to search content"})
-		return
+	user := session.Get(userkey).(int)
+	if c.Request.Method == "GET" {
+		search := c.Query("search")
+		if search != "" {
+			page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+			if err != nil {
+				c.HTML(http.StatusInternalServerError, "content.tmpl", gin.H{"error": "Failed to parse page number"})
+				return
+			}
+			pagesize, err := strconv.Atoi(c.DefaultQuery("pagesize", "5"))
+			if err != nil {
+				c.HTML(http.StatusInternalServerError, "content.tmpl", gin.H{"error": "Failed to parse page size"})
+				return
+			}
+			contents, hasNextPage, err := getPageOfSearchResults(db, user, search, page, pagesize)
+			if err != nil {
+				c.HTML(http.StatusInternalServerError, "content.tmpl", gin.H{"error": "Failed to search content"})
+				return
+			}
+			prevPage := ""
+			if page > 1 {
+				prevPage = fmt.Sprintf("/contents/search?search=%s&page=%d&pagesize=%d", search, page-1, pagesize)
+			}
+			nextPage := ""
+			if hasNextPage {
+				nextPage = fmt.Sprintf("/contents/search?search=%s&page=%d&pagesize=%d", search, page+1, pagesize)
+			}
+			c.HTML(http.StatusOK, "content.tmpl", gin.H{
+				"contents": contents,
+				"prevPage": prevPage,
+				"nextPage": nextPage,
+				"search":   search,
+			})
+		} else {
+			page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+			pagesize, _ := strconv.Atoi(c.DefaultQuery("pagesize", "5"))
+			contents, hasNextPage := getPageOfContent(db, user, page, pagesize)
+			prevPage := ""
+			if page > 1 {
+				prevPage = fmt.Sprintf("/contents?page=%d&pagesize=%d", page-1, pagesize)
+			}
+			nextPage := ""
+			if hasNextPage {
+				nextPage = fmt.Sprintf("/contents?page=%d&pagesize=%d", page+1, pagesize)
+			}
+			c.HTML(http.StatusOK, "content.tmpl", gin.H{
+				"contents": contents,
+				"prevPage": prevPage,
+				"nextPage": nextPage,
+			})
+		}
+	} else if c.Request.Method == "POST" {
+		search := c.PostForm("search")
+		page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "content.tmpl", gin.H{"error": "Failed to parse page number"})
+			return
+		}
+		pagesize, err := strconv.Atoi(c.DefaultQuery("pagesize", "5"))
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "content.tmpl", gin.H{"error": "Failed to parse page size"})
+			return
+		}
+		contents, hasNextPage, err := getPageOfSearchResults(db, user, search, page, pagesize)
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "content.tmpl", gin.H{"error": "Failed to search content"})
+			return
+		}
+		prevPage := ""
+		if page > 1 {
+			prevPage = fmt.Sprintf("/contents/search?search=%s&page=%d&pagesize=%d", search, page-1, pagesize)
+		}
+		nextPage := ""
+		if hasNextPage {
+			nextPage = fmt.Sprintf("/contents/search?search=%s&page=%d&pagesize=%d", search, page+1, pagesize)
+		}
+		c.HTML(http.StatusOK, "content.tmpl", gin.H{
+			"contents": contents,
+			"prevPage": prevPage,
+			"nextPage": nextPage,
+			"search":   search,
+		})
 	}
-	c.HTML(http.StatusOK, "content.tmpl", gin.H{
-		"contents": contents,
-	})
 }

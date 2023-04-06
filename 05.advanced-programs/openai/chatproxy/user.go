@@ -4,14 +4,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
-
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -125,7 +124,6 @@ func updateUserPassword(c *gin.Context) {
 	username := c.PostForm("username")
 	oldPassword := c.PostForm("old_password")
 	newPassword := c.PostForm("new_password")
-
 	var user User
 	row := db.QueryRow("SELECT id, username, password FROM users WHERE username = ?", username)
 	err := row.Scan(&user.ID, &user.Username, &user.Password)
@@ -133,35 +131,29 @@ func updateUserPassword(c *gin.Context) {
 		c.HTML(http.StatusBadRequest, "user.tmpl", gin.H{"error": "User does not exist"})
 		return
 	}
-
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword)); err != nil {
 		c.HTML(http.StatusBadRequest, "user.tmpl", gin.H{"error": "Incorrect old password"})
 		return
 	}
-
 	if len(newPassword) < 6 {
 		c.HTML(http.StatusBadRequest, "user.tmpl", gin.H{"error": "Password must be at least 6 characters long"})
 		return
 	}
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "user.tmpl", gin.H{"error": "Failed to update password"})
 		return
 	}
-
 	statement, err := db.Prepare("UPDATE users SET password = ? WHERE id = ?")
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "user.tmpl", gin.H{"error": "Failed to update password"})
 		return
 	}
 	defer statement.Close()
-
 	_, err = statement.Exec(hashedPassword, user.ID)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "user.tmpl", gin.H{"error": "Failed to update password"})
 		return
 	}
-
 	c.Redirect(http.StatusSeeOther, "/")
 }

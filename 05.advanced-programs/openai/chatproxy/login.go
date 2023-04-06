@@ -2,19 +2,19 @@ package main
 
 import (
 	"database/sql"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var rateLimit = make(map[string]int)
 
 // Check if the IP address has exceeded the login attempt limit
+
 func isRateLimited(ip string) bool {
 	count, ok := rateLimit[ip]
 	if ok && count >= 5 {
@@ -24,6 +24,7 @@ func isRateLimited(ip string) bool {
 }
 
 // Increment the login attempt counter for the IP address
+
 func incrementRateLimit(ip string) {
 	rateLimit[ip]++
 	// Reset the counter after 5 minutes

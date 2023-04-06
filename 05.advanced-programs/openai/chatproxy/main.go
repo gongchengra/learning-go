@@ -2,15 +2,14 @@ package main
 
 import (
 	"database/sql"
-	"log"
-	"net/http"
-	"os"
-
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
+	"net/http"
+	"os"
 )
 
 const userkey = "user"
@@ -72,8 +71,9 @@ func main() {
 	r.POST("/useradd", withLogin(register))
 	r.GET("/userdel", withLogin(delUserHandler))
 	r.GET("/logout", logout)
-	r.GET("/contents", withLogin(getContentHandler))
-	r.POST("/contents", withLogin(searchContentHandler))
+	r.GET("/contents", withLogin(contentHandler))
+	r.GET("/contents/search", withLogin(contentHandler))
+	r.POST("/contents", withLogin(contentHandler))
 	r.GET("/contentdel", withLogin(delContentHandler))
 	r.Run(":8081")
 }
