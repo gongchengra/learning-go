@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Account</title>
+    </head>
+    <style>
+      * {
+            text-align: center;
+      }
+      table {
+          margin: 0 auto;
+      }
+      .nav {
+          display: flex;
+          justify-content: space-evenly;
+          align-items: center;
+          padding: 10px;
+          background-color: #fff; /* changed to white */
+          color: #333; /* changed text color to dark */
+          font-size: 20px;
+          font-weight: bold;
+      }
+    </style>
+    <body>
+        <div class="nav">
+            <a href="/">Homepage</a>
+            <a href="/contents">Contents</a>
+            <a href="/logout">Logout</a>
+        </div>
+        {{ if .error }}
+            <p style="color:red">{{.error}}</p>
+        {{ else }}
+            {{ if .message }}
+                <p style="color:green">{{.message}}</p>
+            {{ end }}
+            {{ if .user }}
+                <div>User ID  : {{.user.ID}}</div>
+                <div>Username : {{.user.Username}}</div>
+				<h2> Update Password </h2>
+				<form action="/account" method="post">
+					<label for="username">Username:</label>
+					<input type="text" id="username" name="username"><br>
+					<label for="old_password">Old Password:</label>
+					<input type="password" id="old_password" name="old_password"><br>
+					<label for="new_password">New Password:</label>
+					<input type="password" id="new_password" name="new_password"><br>
+					<input type="submit" value="Update Password">
+				</form>
+			{{ end }}
+		{{ end }}
+	</body>
+</html>
+
+

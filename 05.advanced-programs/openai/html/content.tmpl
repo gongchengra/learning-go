@@ -25,6 +25,12 @@
             <a href="/logout">Logout</a>
         </div>
         <h1>Contents</h1>
+        <form action="/contents" method="post">
+            <label for="username">Search:</label>
+            <input type="text" id="search" name="search"><br>
+            <input type="submit" value="Submit">
+        </form>
+        <br />
         {{ if .error }}
             <p style="color:red">{{.error}}</p>
         {{ else }}

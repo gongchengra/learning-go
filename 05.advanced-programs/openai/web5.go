@@ -4,12 +4,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	gpt35 "github.com/AlmazDelDiablo/gpt3-5-turbo-go"
 	"github.com/gin-contrib/sessions"
@@ -225,12 +225,37 @@ func delContent(db *sql.DB, id int) error {
 	return nil
 }
 
+var rateLimit = make(map[string]int)
+
+// Check if the IP address has exceeded the login attempt limit
+func isRateLimited(ip string) bool {
+	count, ok := rateLimit[ip]
+	if ok && count >= 5 {
+		return true
+	}
+	return false
+}
+
+// Increment the login attempt counter for the IP address
+func incrementRateLimit(ip string) {
+	rateLimit[ip]++
+	// Reset the counter after 5 minutes
+	time.AfterFunc(5*time.Minute, func() {
+		rateLimit[ip] = 0
+	})
+}
+
 func login(c *gin.Context) {
 	session := sessions.Default(c)
 	db := c.MustGet("db").(*sql.DB)
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 	password = strings.TrimSpace(password)
+	ip := c.ClientIP()
+	if isRateLimited(ip) {
+		c.HTML(http.StatusTooManyRequests, "login.tmpl", gin.H{"error": "Too many login attempts. Please try again later."})
+		return
+	}
 	var id int
 	var dbUsername string
 	var dbPassword string
@@ -239,6 +264,7 @@ func login(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{"error": "Invalid user"})
+		incrementRateLimit(ip)
 		return
 	}
 	if CheckPassword(dbPassword, password) {
@@ -251,6 +277,7 @@ func login(c *gin.Context) {
 		c.HTML(http.StatusOK, "input.tmpl", gin.H{})
 	} else {
 		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{"error": "Invalid password"})
+		incrementRateLimit(ip)
 	}
 }
 
@@ -326,6 +353,42 @@ func delContentHandler(c *gin.Context) {
 	c.Redirect(http.StatusSeeOther, "/contents")
 }
 
+func searchContent(db *sql.DB, search string) ([]Content, error) {
+	var contents []Content
+	rows, err := db.Query("SELECT id, prompt, answer, userid FROM contents WHERE (prompt LIKE '%'||?||'%' OR answer LIKE '%'||?||'%')", search, search)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var content Content
+		if err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID); err != nil {
+			return nil, err
+		}
+		contents = append(contents, content)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return contents, nil
+}
+
+func searchContentHandler(c *gin.Context) {
+	db := c.MustGet("db").(*sql.DB)
+	session := sessions.Default(c)
+	_ = session.Get(userkey).(int)
+	search := c.PostForm("search")
+	contents, err := searchContent(db, search)
+	if err != nil {
+		log.Println(err)
+		c.HTML(http.StatusInternalServerError, "content.tmpl", gin.H{"error": "Failed to search content"})
+		return
+	}
+	c.HTML(http.StatusOK, "content.tmpl", gin.H{
+		"contents": contents,
+	})
+}
+
 func main() {
 	db, err := sql.Open("sqlite3", "./chat.db")
 	if err != nil {
@@ -397,10 +460,7 @@ func main() {
 			"nextPage": nextPage,
 		})
 	}))
+	r.POST("/contents", withLogin(searchContentHandler))
 	r.GET("/contentdel", withLogin(delContentHandler))
 	r.Run(":8080")
-}
-
-func nl2br(str string) template.HTML {
-	return template.HTML(strings.ReplaceAll(str, "\n", "<br>"))
 }

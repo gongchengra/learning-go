@@ -1,9 +1,8 @@
 package main
 
 import (
-	"log"
-
 	gpt35 "github.com/AlmazDelDiablo/gpt3-5-turbo-go"
+	"log"
 )
 
 func chat(input string, assist string) (output string) {

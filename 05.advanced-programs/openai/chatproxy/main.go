@@ -5,8 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -31,55 +29,6 @@ func init() {
 	if len(token) == 0 {
 		log.Fatal("Token not found")
 	}
-}
-
-func withLogin(handler gin.HandlerFunc) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		user := session.Get(userkey)
-		if user == nil {
-			c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{})
-			c.Abort()
-			return
-		}
-		handler(c)
-	}
-}
-
-func login(c *gin.Context) {
-	session := sessions.Default(c)
-	db := c.MustGet("db").(*sql.DB)
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-	password = strings.TrimSpace(password)
-	var id int
-	var dbUsername string
-	var dbPassword string
-	var role int
-	err := db.QueryRow("SELECT id, username, password, role_id FROM users WHERE username=?", username).Scan(&id, &dbUsername, &dbPassword, &role)
-	if err != nil {
-		log.Println(err)
-		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{"error": "Invalid user"})
-		return
-	}
-	if CheckPassword(dbPassword, password) {
-		session.Set(userkey, id)
-		session.Set(userrole, role)
-		if err := session.Save(); err != nil {
-			c.HTML(http.StatusInternalServerError, "login.tmpl", gin.H{"error": "Failed to save session"})
-			return
-		}
-		c.HTML(http.StatusOK, "input.tmpl", gin.H{})
-	} else {
-		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{"error": "Invalid password"})
-	}
-}
-
-func logout(c *gin.Context) {
-	session := sessions.Default(c)
-	session.Clear()
-	session.Save()
-	c.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
 func index(c *gin.Context) {
@@ -112,16 +61,14 @@ func main() {
 		role := session.Get(userrole)
 		c.HTML(http.StatusOK, "user.tmpl", gin.H{"users": users, "role": role})
 	}))
-	r.GET("/user", withLogin(func(c *gin.Context) {
-		id, _ := strconv.Atoi(c.Query("id"))
-		if id == 0 {
-			session := sessions.Default(c)
-			user := session.Get(userkey)
-			id = user.(int)
-		}
+	r.GET("/account", withLogin(func(c *gin.Context) {
+		session := sessions.Default(c)
+		user := session.Get(userkey)
+		id := user.(int)
 		foundUser, _ := findUser(db, id)
-		c.HTML(http.StatusOK, "user.tmpl", gin.H{"user": foundUser})
+		c.HTML(http.StatusOK, "account.tmpl", gin.H{"user": foundUser})
 	}))
+	r.POST("/account", withLogin(updateUserPassword))
 	r.POST("/useradd", withLogin(register))
 	r.GET("/userdel", withLogin(delUserHandler))
 	r.GET("/logout", logout)
