@@ -4,64 +4,66 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Users</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     </head>
-    <style>
-      * {
-            text-align: center;
-      }
-      table {
-          margin: 0 auto;
-      }
-      .nav {
-          display: flex;
-          justify-content: space-evenly;
-          align-items: center;
-          padding: 10px;
-          background-color: #fff; /* changed to white */
-          color: #333; /* changed text color to dark */
-          font-size: 20px;
-          font-weight: bold;
-      }
-    </style>
     <body>
-        <div class="nav">
-            <a href="/">Homepage</a>
-            <a href="/contents">Contents</a>
-            <a href="/logout">Logout</a>
-        </div>
-        <h1>Users</h1>
-        {{ if .users }}
-            <table>
-                <tr><th>ID</th><th>Username</th><th>Operation</th></tr>
-                {{ range .users }}
-                    <tr>
-                        <td>{{.ID}}</td>
-                        <td>{{.Username}}</td>
-                        <td><a href="/userdel?id={{.ID}}">delete</a></td>
-                    </tr>
-                {{ end }}
-            </table>
-        {{ end }}
-        {{ if .error }}
-            <p style="color:red">{{.error}}</p>
-        {{ else }}
-            {{ if .message }}
-                <p style="color:green">{{.message}}</p>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Homepage</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contents">Contents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div class="container">
+            <h1>Users</h1>
+            {{ if .users }}
+                <table class="table">
+                    <tr><th>ID</th><th>Username</th><th>Operation</th></tr>
+                    {{ range .users }}
+                        <tr>
+                            <td>{{.ID}}</td>
+                            <td>{{.Username}}</td>
+                            <td><a href="/userdel?id={{.ID}}">delete</a></td>
+                        </tr>
+                    {{ end }}
+                </table>
             {{ end }}
-            {{ if .user }}
-                <div>User ID  : {{.user.ID}}</div>
-                <div>Username : {{.user.Username}}</div>
+            {{ if .error }}
+                <p style="color:red">{{.error}}</p>
             {{ else }}
-                <h2> Add a new user </h2>
-                <form action="/useradd" method="post">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username"><br>
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password"><br>
-                    <input type="submit" value="Submit">
-                </form>
+                {{ if .message }}
+                    <p style="color:green">{{.message}}</p>
+                {{ end }}
+                {{ if .user }}
+                    <div>User ID  : {{.user.ID}}</div>
+                    <div>Username : {{.user.Username}}</div>
+                {{ else }}
+                    <h2> Add a new user </h2>
+                    <form action="/useradd" method="post">
+                        <div class="form-group">
+                            <label for="username">Username:</label>
+                            <input type="text" class="form-control" id="username" name="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password:</label>
+                            <input type="password" class="form-control" id="password" name="password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                {{ end }}
             {{ end }}
-        {{ end }}
+        </div>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     </body>
 </html>
 

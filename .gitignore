@@ -19,3 +19,4 @@ tmp/
 **/vendor/
 .idea
 *.log
+*.sql

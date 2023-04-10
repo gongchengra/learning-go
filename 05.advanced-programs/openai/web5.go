@@ -119,7 +119,7 @@ func addUser(db *sql.DB, username, password string) error {
 	if err != nil {
 		return err
 	}
-	statement, err := db.Prepare("INSERT INTO users (username, password) VALUES (?, ?)")
+	statement, err := db.Prepare("INSERT INTO users (username, password, role_id) VALUES (?, ?, 2)")
 	if err != nil {
 		return err
 	}
@@ -228,6 +228,7 @@ func delContent(db *sql.DB, id int) error {
 var rateLimit = make(map[string]int)
 
 // Check if the IP address has exceeded the login attempt limit
+
 func isRateLimited(ip string) bool {
 	count, ok := rateLimit[ip]
 	if ok && count >= 5 {
@@ -237,6 +238,7 @@ func isRateLimited(ip string) bool {
 }
 
 // Increment the login attempt counter for the IP address
+
 func incrementRateLimit(ip string) {
 	rateLimit[ip]++
 	// Reset the counter after 5 minutes

@@ -49,7 +49,7 @@ func addUser(db *sql.DB, username, password string) error {
 	if err != nil {
 		return err
 	}
-	statement, err := db.Prepare("INSERT INTO users (username, password) VALUES (?, ?)")
+	statement, err := db.Prepare("INSERT INTO users (username, password, role_id) VALUES (?, ?, 2)")
 	if err != nil {
 		return err
 	}
