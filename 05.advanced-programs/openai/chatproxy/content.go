@@ -3,11 +3,12 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 )
 
 type Content struct {
@@ -87,11 +88,31 @@ func addContent(db *sql.DB, input, output string, userID int) error {
 	return err
 }
 
+func checkExist(db *sql.DB, input string) (Content, error) {
+	row := db.QueryRow("SELECT id, prompt, answer, userid FROM contents WHERE prompt=?  ORDER BY id DESC LIMIT 1", input)
+	var content Content
+	err := row.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID)
+	if err != nil {
+		return Content{}, err
+	}
+	return content, nil
+}
+
 func addContentHandler(c *gin.Context) {
 	db := c.MustGet("db").(*sql.DB)
 	session := sessions.Default(c)
 	userID := session.Get(userkey).(int)
 	input := c.PostForm("input")
+	existContent, err := checkExist(db, input)
+	if err == nil {
+		c.HTML(http.StatusOK, "input.tmpl", gin.H{
+			"input":  input,
+			"output": existContent.Answer,
+		})
+		return
+	} else {
+		log.Println(err)
+	}
 	checked := false
 	continueVal := c.PostForm("continue")
 	if continueVal == "yes" {
@@ -112,7 +133,7 @@ func addContentHandler(c *gin.Context) {
 	if context != "" {
 		input = context + input
 	}
-	err := addContent(db, input, output, userID)
+	err = addContent(db, input, output, userID)
 	if err != nil {
 		log.Println(err)
 		c.HTML(http.StatusInternalServerError, "input.tmpl", gin.H{"error": "Failed to add content"})
