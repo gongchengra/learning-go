@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -59,7 +58,6 @@ func setConsecutiveId(dbPath string) {
 		panic(err)
 	}
 	fmt.Println("Id consecutive number updated successfully!")
-
 }
 
 func setMaxId(dbPath string) {

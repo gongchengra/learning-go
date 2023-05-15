@@ -67,7 +67,7 @@ func login(c *gin.Context) {
 			c.HTML(http.StatusInternalServerError, "login.tmpl", gin.H{"error": "Failed to save session"})
 			return
 		}
-		c.HTML(http.StatusOK, "input.tmpl", gin.H{})
+		c.HTML(http.StatusOK, "input.tmpl", gin.H{"title": "Login"})
 	} else {
 		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{"error": "Invalid password"})
 		incrementRateLimit(ip)

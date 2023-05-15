@@ -4,13 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
-	"time"
-
 	gpt35 "github.com/AlmazDelDiablo/gpt3-5-turbo-go"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -18,6 +11,12 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+	"time"
 )
 
 const userkey = "user"

@@ -3,18 +3,17 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strconv"
-
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
 )
 
 type Content struct {
 	ID     int    `json:"id"`
-	Prompt string `json:"username"`
-	Answer string `json:"password"`
+	Prompt string `json:"prompt"`
+	Answer string `json:"answer"`
 	UserID int    `json:"userid"`
 }
 
@@ -106,6 +105,7 @@ func addContentHandler(c *gin.Context) {
 	existContent, err := checkExist(db, input)
 	if err == nil {
 		c.HTML(http.StatusOK, "input.tmpl", gin.H{
+			"title":  "Input Prompt",
 			"input":  input,
 			"output": existContent.Answer,
 		})
@@ -127,6 +127,7 @@ func addContentHandler(c *gin.Context) {
 	}
 	output := chat(input, context)
 	c.HTML(http.StatusOK, "input.tmpl", gin.H{
+		"title":  "Input Prompt",
 		"input":  input,
 		"output": output,
 	})
@@ -288,6 +289,7 @@ func contentHandler(c *gin.Context) {
 				nextPage = fmt.Sprintf("/contents/search?search=%s&page=%d&pagesize=%d", search, page+1, pagesize)
 			}
 			c.HTML(http.StatusOK, "content.tmpl", gin.H{
+				"title":    "Contents",
 				"contents": contents,
 				"prevPage": prevPage,
 				"nextPage": nextPage,
@@ -306,6 +308,7 @@ func contentHandler(c *gin.Context) {
 				nextPage = fmt.Sprintf("/contents?page=%d&pagesize=%d", page+1, pagesize)
 			}
 			c.HTML(http.StatusOK, "content.tmpl", gin.H{
+				"title":    "Contents",
 				"contents": contents,
 				"prevPage": prevPage,
 				"nextPage": nextPage,
@@ -337,9 +340,52 @@ func contentHandler(c *gin.Context) {
 			nextPage = fmt.Sprintf("/contents/search?search=%s&page=%d&pagesize=%d", search, page+1, pagesize)
 		}
 		c.HTML(http.StatusOK, "content.tmpl", gin.H{
+			"title":    "Contents",
 			"contents": contents,
 			"prevPage": prevPage,
 			"nextPage": nextPage,
+			"search":   search,
+		})
+	}
+}
+
+func apiContentHandler(c *gin.Context) {
+	db := c.MustGet("db").(*sql.DB)
+	session := sessions.Default(c)
+	user := session.Get(userkey).(int)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pagesize, _ := strconv.Atoi(c.DefaultQuery("pagesize", "5"))
+	if c.Request.Method == "GET" {
+		search := c.Query("search")
+		if search != "" {
+			contents, _, err := getPageOfSearchResults(db, user, search, page, pagesize)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Failed to search content",
+				})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"contents": contents,
+				"search":   search,
+			})
+		} else {
+			contents, _ := getPageOfContent(db, user, page, pagesize)
+			c.JSON(http.StatusOK, gin.H{
+				"contents": contents,
+			})
+		}
+	} else if c.Request.Method == "POST" {
+		search := c.PostForm("search")
+		contents, _, err := getPageOfSearchResults(db, user, search, page, pagesize)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to search content",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"contents": contents,
 			"search":   search,
 		})
 	}

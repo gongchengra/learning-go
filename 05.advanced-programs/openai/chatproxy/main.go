@@ -2,14 +2,15 @@ package main
 
 import (
 	"database/sql"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
-	"log"
-	"net/http"
-	"os"
 )
 
 const userkey = "user"
@@ -31,7 +32,7 @@ func init() {
 }
 
 func index(c *gin.Context) {
-	c.HTML(http.StatusOK, "input.tmpl", gin.H{})
+	c.HTML(http.StatusOK, "input.tmpl", gin.H{"title": "Login"})
 }
 
 func main() {
@@ -51,7 +52,7 @@ func main() {
 	r.GET("/", withLogin(index))
 	r.POST("/login", login)
 	r.GET("/input", withLogin(func(c *gin.Context) {
-		c.HTML(http.StatusOK, "input.tmpl", gin.H{})
+		c.HTML(http.StatusOK, "input.tmpl", gin.H{"title": "Input Prompt"})
 	}))
 	r.POST("/input", withLogin(addContentHandler))
 	r.GET("/users", withLogin(func(c *gin.Context) {
@@ -65,7 +66,7 @@ func main() {
 		user := session.Get(userkey)
 		id := user.(int)
 		foundUser, _ := findUser(db, id)
-		c.HTML(http.StatusOK, "account.tmpl", gin.H{"user": foundUser})
+		c.HTML(http.StatusOK, "account.tmpl", gin.H{"title": "Account", "user": foundUser})
 	}))
 	r.POST("/account", withLogin(updateUserPassword))
 	r.POST("/useradd", withLogin(register))
@@ -74,6 +75,11 @@ func main() {
 	r.GET("/contents", withLogin(contentHandler))
 	r.GET("/contents/search", withLogin(contentHandler))
 	r.POST("/contents", withLogin(contentHandler))
+	r.GET("/api/contents", withLogin(apiContentHandler))
+	fs := http.Dir("./static")
+	r.StaticFS("/vue/contents", fs)
+	r.GET("/api/contents/search", withLogin(apiContentHandler))
+	r.POST("/api/contents", withLogin(apiContentHandler))
 	r.GET("/contentdel", withLogin(delContentHandler))
 	r.Run(":8081")
 }
