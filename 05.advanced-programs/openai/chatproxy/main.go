@@ -2,15 +2,14 @@ package main
 
 import (
 	"database/sql"
-	"log"
-	"net/http"
-	"os"
-
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
+	"net/http"
+	"os"
 )
 
 const userkey = "user"

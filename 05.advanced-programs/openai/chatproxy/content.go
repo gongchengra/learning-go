@@ -53,7 +53,7 @@ func getPageOfContent(db *sql.DB, user int, page int, pageSize int) ([]Content, 
 		pageSize = 5
 	}
 	offset := (page - 1) * pageSize
-	query := fmt.Sprintf("SELECT id, prompt, answer, userid FROM contents where is_deleted = 0 and userid = %d LIMIT %d OFFSET %d", user, pageSize, offset)
+	query := fmt.Sprintf("SELECT id, prompt, answer, userid FROM contents where is_deleted = 0 and userid = %d ORDER BY id DESC LIMIT %d OFFSET %d", user, pageSize, offset)
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, false
@@ -207,7 +207,7 @@ func delContentHandler(c *gin.Context) {
 
 func searchContent(db *sql.DB, search string) ([]Content, error) {
 	var contents []Content
-	rows, err := db.Query("SELECT id, prompt, answer FROM contents WHERE is_deleted = 0 and (prompt LIKE '%'||?||'%' OR answer LIKE '%'||?||'%')", search, search)
+	rows, err := db.Query("SELECT id, prompt, answer FROM contents WHERE is_deleted = 0 and (prompt LIKE '%'||?||'%' OR answer LIKE '%'||?||'%') ORDER BY id DESC", search, search)
 	if err != nil {
 		return nil, err
 	}
