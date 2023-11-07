@@ -1,22 +1,24 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	gpt35 "github.com/AlmazDelDiablo/gpt3-5-turbo-go"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
-	_ "github.com/mattn/go-sqlite3"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	_ "github.com/mattn/go-sqlite3"
+	openai "github.com/sashabaranov/go-openai"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const userkey = "user"
@@ -56,19 +58,21 @@ func CheckPassword(hash, password string) bool {
 }
 
 func chat(input string) (output string) {
-	c := gpt35.NewClient(token)
-	req := &gpt35.Request{
-		Model: gpt35.ModelGpt35Turbo,
-		Messages: []*gpt35.Message{
-			{
-				Role:    gpt35.RoleUser,
-				Content: input,
+	client := openai.NewClient(token)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT4TurboPreview,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: input,
+				},
 			},
 		},
-	}
-	resp, err := c.GetChat(req)
+	)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 		return
 	}
 	output = resp.Choices[0].Message.Content
@@ -172,7 +176,7 @@ func getPageOfContent(db *sql.DB, page int, pageSize int) ([]Content, bool) {
 		pageSize = 5
 	}
 	offset := (page - 1) * pageSize
-	query := fmt.Sprintf("SELECT id, prompt, answer, userid FROM contents LIMIT %d OFFSET %d", pageSize, offset)
+	query := fmt.Sprintf("SELECT id, prompt, answer, userid FROM contents ORDER BY id DESC LIMIT %d OFFSET %d", pageSize, offset)
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, false

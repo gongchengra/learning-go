@@ -1,28 +1,32 @@
 package main
 
 import (
-	gpt35 "github.com/AlmazDelDiablo/gpt3-5-turbo-go"
-	"log"
+	"context"
+	"fmt"
+
+	openai "github.com/sashabaranov/go-openai"
 )
 
 func chat(input string, assist string) (output string) {
-	c := gpt35.NewClient(token)
-	req := &gpt35.Request{
-		Model: gpt35.ModelGpt35Turbo,
-		Messages: []*gpt35.Message{
-			{
-				Role:    gpt35.RoleAssistant,
-				Content: assist,
-			},
-			{
-				Role:    gpt35.RoleUser,
-				Content: input,
+	client := openai.NewClient(token)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT4TurboPreview,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: assist,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: input,
+				},
 			},
 		},
-	}
-	resp, err := c.GetChat(req)
+	)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 		return
 	}
 	output = resp.Choices[0].Message.Content

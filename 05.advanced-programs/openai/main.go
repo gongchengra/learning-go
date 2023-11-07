@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	openai "github.com/sashabaranov/go-openai"
 	"os"
 	"strings"
+
+	openai "github.com/sashabaranov/go-openai"
 )
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
+			Model: openai.GPT40314,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
