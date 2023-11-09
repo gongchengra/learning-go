@@ -2,14 +2,15 @@ package main
 
 import (
 	"database/sql"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
-	"log"
-	"net/http"
-	"os"
 )
 
 const userkey = "user"
@@ -54,6 +55,10 @@ func main() {
 		c.HTML(http.StatusOK, "input.tmpl", gin.H{"title": "Input Prompt"})
 	}))
 	r.POST("/input", withLogin(addContentHandler))
+	r.GET("/draw", withLogin(func(c *gin.Context) {
+		c.HTML(http.StatusOK, "draw.tmpl", gin.H{"title": "Input Prompt"})
+	}))
+	r.POST("/draw", withLogin(drawContentHandler))
 	r.GET("/users", withLogin(func(c *gin.Context) {
 		users, _ := getUsers(db)
 		session := sessions.Default(c)

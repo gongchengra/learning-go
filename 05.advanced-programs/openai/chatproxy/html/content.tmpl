@@ -1,21 +1,5 @@
 {{ template "header" . }}
-        <nav class="navbar navbar-expand-lg navbar-expand-md navbar-expand-sm navbar-light bg-light">
-            <div class="container-fluid">
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/">Homepage</a>
-                        </li>
-                        <li class="nav-item active">
-                            <a class="nav-link" href="/contents">Contents</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/account">My Account</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
+{{ template "nav" . }}
         <div class="container">
         <h1>Contents</h1>
             <form action="/contents" method="post">
@@ -37,7 +21,11 @@
                         <div class="card-body">
                             <h5 class="card-title">Question from User:</h5>
                             <pre class="card-text" style="white-space: pre-wrap">{{.Prompt}}</pre>
+                            {{ if .IsImage }}
+                                <img src="data:image/png;base64,{{.Answer}}" alt="AI Generated Image" />
+                            {{ else }}
                             <div>Answer from AI:<pre style="white-space: pre-wrap">{{.Answer}}</pre></div>
+                            {{ end }}
                             <div>Delete this question: <a href="/contentdel?id={{.ID}}">delete</a></div>
                         </div>
                     </div>

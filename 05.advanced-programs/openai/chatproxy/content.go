@@ -3,22 +3,24 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 )
 
 type Content struct {
-	ID     int    `json:"id"`
-	Prompt string `json:"prompt"`
-	Answer string `json:"answer"`
-	UserID int    `json:"userid"`
+	ID      int    `json:"id"`
+	Prompt  string `json:"prompt"`
+	Answer  string `json:"answer"`
+	UserID  int    `json:"userid"`
+	IsImage int    `json:"isImage"`
 }
 
 func getContent(db *sql.DB) ([]Content, error) {
-	rows, err := db.Query("SELECT id, prompt, answer, userid FROM contents")
+	rows, err := db.Query("SELECT id, prompt, answer, userid, isImage FROM contents")
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +28,7 @@ func getContent(db *sql.DB) ([]Content, error) {
 	var contents []Content
 	for rows.Next() {
 		var content Content
-		err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID)
+		err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID, &content.IsImage)
 		if err != nil {
 			return nil, err
 		}
@@ -38,7 +40,7 @@ func getContent(db *sql.DB) ([]Content, error) {
 func getLastContent(db *sql.DB, userID int) (Content, error) {
 	row := db.QueryRow("SELECT id, prompt, answer, userid FROM contents WHERE userid=? AND is_deleted=0 ORDER BY id DESC LIMIT 1", userID)
 	var content Content
-	err := row.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID)
+	err := row.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID, &content.IsImage)
 	if err != nil {
 		return Content{}, err
 	}
@@ -53,7 +55,7 @@ func getPageOfContent(db *sql.DB, user int, page int, pageSize int) ([]Content, 
 		pageSize = 5
 	}
 	offset := (page - 1) * pageSize
-	query := fmt.Sprintf("SELECT id, prompt, answer, userid FROM contents where is_deleted = 0 and userid = %d ORDER BY id DESC LIMIT %d OFFSET %d", user, pageSize, offset)
+	query := fmt.Sprintf("SELECT id, prompt, answer, userid, isImage FROM contents where is_deleted = 0 and userid = %d ORDER BY id DESC LIMIT %d OFFSET %d", user, pageSize, offset)
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, false
@@ -65,7 +67,7 @@ func getPageOfContent(db *sql.DB, user int, page int, pageSize int) ([]Content, 
 	)
 	for rows.Next() {
 		var content Content
-		err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID)
+		err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID, &content.IsImage)
 		if err != nil {
 			return nil, false
 		}
@@ -77,13 +79,13 @@ func getPageOfContent(db *sql.DB, user int, page int, pageSize int) ([]Content, 
 	return contents, hasNextPage
 }
 
-func addContent(db *sql.DB, input, output string, userID int) error {
-	statement, err := db.Prepare("INSERT INTO contents (prompt, answer, userid) VALUES (?, ?, ?)")
+func addContent(db *sql.DB, input, output string, userID int, isImage int) error {
+	statement, err := db.Prepare("INSERT INTO contents (prompt, answer, userid, isImage) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return err
 	}
 	defer statement.Close()
-	_, err = statement.Exec(input, output, userID)
+	_, err = statement.Exec(input, output, userID, isImage)
 	return err
 }
 
@@ -134,7 +136,7 @@ func addContentHandler(c *gin.Context) {
 	if context != "" {
 		input = context + input
 	}
-	err = addContent(db, input, output, userID)
+	err = addContent(db, input, output, userID, 0)
 	if err != nil {
 		log.Println(err)
 		c.HTML(http.StatusInternalServerError, "input.tmpl", gin.H{"error": "Failed to add content"})
@@ -207,7 +209,7 @@ func delContentHandler(c *gin.Context) {
 
 func searchContent(db *sql.DB, search string) ([]Content, error) {
 	var contents []Content
-	rows, err := db.Query("SELECT id, prompt, answer FROM contents WHERE is_deleted = 0 and (prompt LIKE '%'||?||'%' OR answer LIKE '%'||?||'%') ORDER BY id DESC", search, search)
+	rows, err := db.Query("SELECT id, prompt, answer, isImage FROM contents WHERE is_deleted = 0 and (prompt LIKE '%'||?||'%' OR answer LIKE '%'||?||'%') ORDER BY id DESC", search, search)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +235,7 @@ func getPageOfSearchResults(db *sql.DB, user int, search string, page int, pageS
 		pageSize = 5
 	}
 	offset := (page - 1) * pageSize
-	query := fmt.Sprintf("SELECT id, prompt, answer, userid FROM contents where is_deleted = 0 and userid = %d and (prompt LIKE '%%%s%%' OR answer LIKE '%%%s%%') LIMIT %d OFFSET %d", user, search, search, pageSize, offset)
+	query := fmt.Sprintf("SELECT id, prompt, answer, userid, isImage FROM contents where is_deleted = 0 and userid = %d and (prompt LIKE '%%%s%%' OR answer LIKE '%%%s%%') LIMIT %d OFFSET %d", user, search, search, pageSize, offset)
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, false, err
@@ -245,7 +247,7 @@ func getPageOfSearchResults(db *sql.DB, user int, search string, page int, pageS
 	)
 	for rows.Next() {
 		var content Content
-		if err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID); err != nil {
+		if err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID, &content.IsImage); err != nil {
 			return nil, false, err
 		}
 		contents = append(contents, content)
