@@ -38,7 +38,7 @@ func getContent(db *sql.DB) ([]Content, error) {
 }
 
 func getLastContent(db *sql.DB, userID int) (Content, error) {
-	row := db.QueryRow("SELECT id, prompt, answer, userid FROM contents WHERE userid=? AND is_deleted=0 ORDER BY id DESC LIMIT 1", userID)
+	row := db.QueryRow("SELECT id, prompt, answer, userid, isImage FROM contents WHERE userid=? AND is_deleted=0 ORDER BY id DESC LIMIT 1", userID)
 	var content Content
 	err := row.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID, &content.IsImage)
 	if err != nil {
