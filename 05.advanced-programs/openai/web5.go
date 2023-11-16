@@ -31,10 +31,11 @@ type User struct {
 }
 
 type Content struct {
-	ID     int    `json:"id"`
-	Prompt string `json:"username"`
-	Answer string `json:"password"`
-	UserID int    `json:"userid"`
+	ID      int    `json:"id"`
+	Prompt  string `json:"username"`
+	Answer  string `json:"password"`
+	UserID  int    `json:"userid"`
+	IsImage int    `json:"isImage"`
 }
 
 var secret []byte
@@ -151,7 +152,7 @@ func delUser(db *sql.DB, id int) error {
 }
 
 func getContent(db *sql.DB) ([]Content, error) {
-	rows, err := db.Query("SELECT id, prompt, answer, userid FROM contents")
+	rows, err := db.Query("SELECT id, prompt, answer, userid, isImage FROM contents")
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func getContent(db *sql.DB) ([]Content, error) {
 	var contents []Content
 	for rows.Next() {
 		var content Content
-		err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID)
+		err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID, &content.IsImage)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +177,7 @@ func getPageOfContent(db *sql.DB, page int, pageSize int) ([]Content, bool) {
 		pageSize = 5
 	}
 	offset := (page - 1) * pageSize
-	query := fmt.Sprintf("SELECT id, prompt, answer, userid FROM contents ORDER BY id DESC LIMIT %d OFFSET %d", pageSize, offset)
+	query := fmt.Sprintf("SELECT id, prompt, answer, userid, isImage FROM contents ORDER BY id DESC LIMIT %d OFFSET %d", pageSize, offset)
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, false
@@ -188,7 +189,7 @@ func getPageOfContent(db *sql.DB, page int, pageSize int) ([]Content, bool) {
 	)
 	for rows.Next() {
 		var content Content
-		err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID)
+		err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID, &content.IsImage)
 		if err != nil {
 			return nil, false
 		}
@@ -199,13 +200,13 @@ func getPageOfContent(db *sql.DB, page int, pageSize int) ([]Content, bool) {
 	return contents, hasNextPage
 }
 
-func addContent(db *sql.DB, input, output string, userID int) error {
-	statement, err := db.Prepare("INSERT INTO contents (prompt, answer, userid) VALUES (?, ?, ?)")
+func addContent(db *sql.DB, input, output string, userID int, isImage int) error {
+	statement, err := db.Prepare("INSERT INTO contents (prompt, answer, userid, isImage) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return err
 	}
 	defer statement.Close()
-	_, err = statement.Exec(input, output, userID)
+	_, err = statement.Exec(input, output, userID, isImage)
 	return err
 }
 
@@ -332,7 +333,7 @@ func addContentHandler(c *gin.Context) {
 		"input":  input,
 		"output": output,
 	})
-	err := addContent(db, input, output, userID)
+	err := addContent(db, input, output, userID, 0)
 	if err != nil {
 		log.Println(err)
 		c.HTML(http.StatusInternalServerError, "input.tmpl", gin.H{"error": "Failed to add content"})
@@ -360,14 +361,14 @@ func delContentHandler(c *gin.Context) {
 
 func searchContent(db *sql.DB, search string) ([]Content, error) {
 	var contents []Content
-	rows, err := db.Query("SELECT id, prompt, answer, userid FROM contents WHERE (prompt LIKE '%'||?||'%' OR answer LIKE '%'||?||'%')", search, search)
+	rows, err := db.Query("SELECT id, prompt, answer, userid, isImage FROM contents WHERE (prompt LIKE '%'||?||'%' OR answer LIKE '%'||?||'%')", search, search)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var content Content
-		if err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID); err != nil {
+		if err := rows.Scan(&content.ID, &content.Prompt, &content.Answer, &content.UserID, &content.IsImage); err != nil {
 			return nil, err
 		}
 		contents = append(contents, content)

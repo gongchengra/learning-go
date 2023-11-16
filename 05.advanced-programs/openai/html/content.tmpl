@@ -47,8 +47,12 @@
                         <div class="card-body">
                             <h5 class="card-title">Question from User <a href="/user?id={{.UserID}}" target="_blank">{{.UserID}}</a>:</h5>
                             <pre class="card-text" style="white-space: pre-wrap">{{.Prompt}}</pre>
-                            <div>Answer from AI:</div>
-                            <pre class="card-text" style="white-space: pre-wrap">{{.Answer}}</pre>
+                            {{ if .IsImage }}
+                                <div>Answer from AI:</div>
+                                <img src="data:image/png;base64,{{.Answer}}" alt="AI Generated Image" />
+                            {{ else }}
+                            <div>Answer from AI:<pre style="white-space: pre-wrap">{{.Answer}}</pre></div>
+                            {{ end }}
                             <div>Delete this question: <a href="/contentdel?id={{.ID}}">delete</a></div>
                         </div>
                     </div>
