@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -21,7 +22,7 @@ func main() {
 	}
 	defer chatDB.Close()
 	// Query records from contents table in data.db
-	rows, err := dataDB.Query("SELECT prompt, answer, userid FROM contents")
+	rows, err := dataDB.Query("SELECT prompt, answer, userid, isImage FROM contents")
 	if err != nil {
 		fmt.Println("Error while querying contents table in data.db")
 		return
@@ -30,8 +31,8 @@ func main() {
 	// Loop through each row and insert into chat.db if prompt does not exist
 	for rows.Next() {
 		var prompt, answer string
-		var userid int
-		err = rows.Scan(&prompt, &answer, &userid)
+		var userid, isImage int
+		err = rows.Scan(&prompt, &answer, &userid, &isImage)
 		if err != nil {
 			fmt.Println("Error while scanning row in contents table")
 			return
@@ -45,7 +46,7 @@ func main() {
 		}
 		if !exists {
 			// Insert record into contents table in chat.db
-			_, err = chatDB.Exec("INSERT INTO contents (prompt, answer, userid) VALUES (?, ?, ?)", prompt, answer, userid)
+			_, err = chatDB.Exec("INSERT INTO contents (prompt, answer, userid, isImage) VALUES (?, ?, ?, ?)", prompt, answer, userid, isImage)
 			if err != nil {
 				fmt.Println("Error while inserting record into contents table in chat.db")
 				return
