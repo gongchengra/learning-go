@@ -16,10 +16,8 @@ func main() {
 		fmt.Printf("Usage: %s /path/to/your/folder\n", os.Args[0])
 		os.Exit(1)
 	}
-
 	folderPath := os.Args[1]
 	hashes := make(map[string][]string)
-
 	err := filepath.WalkDir(folderPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -37,7 +35,6 @@ func main() {
 		fmt.Println("Error walking through directory:", err)
 		os.Exit(2)
 	}
-
 	duplicatesFound := false
 	fmt.Println("=== Duplicate file groups ===")
 	for hash, files := range hashes {
@@ -50,21 +47,17 @@ func main() {
 			fmt.Println()
 		}
 	}
-
 	if !duplicatesFound {
 		fmt.Println("No duplicate files found.")
 		os.Exit(0)
 	}
-
 	var deleteChoice string
 	fmt.Print("Would you like to delete duplicates, keeping only one copy of each file? (yes/no) ")
 	fmt.Scan(&deleteChoice)
-
 	if deleteChoice != "yes" {
 		fmt.Println("Exiting without deleting any files.")
 		os.Exit(0)
 	}
-
 	for hash, files := range hashes {
 		if len(files) > 1 {
 			fmt.Printf("Duplicates for hash %s:\n", hash)
@@ -72,12 +65,10 @@ func main() {
 			for i, file := range files {
 				fmt.Printf("%d) %s\n", i+1, file)
 			}
-
 			var keepChoice string
 			for {
 				fmt.Print("Enter the number of the file you wish to keep, or 'd' to delete all: ")
 				fmt.Scan(&keepChoice)
-
 				if keepChoice == "d" {
 					for _, file := range files {
 						fmt.Printf("Deleting: %s\n", file)
@@ -105,7 +96,6 @@ func main() {
 			fmt.Println()
 		}
 	}
-
 	fmt.Println("Duplicate files deletion complete.")
 }
 
@@ -116,13 +106,11 @@ func fileMD5(filePath string) (string, error) {
 		return returnMD5String, err
 	}
 	defer file.Close()
-
 	hash := md5.New()
 	if _, err := io.Copy(hash, file); err != nil {
 		return returnMD5String, err
 	}
 	hashInBytes := hash.Sum(nil)[:16]
 	returnMD5String = hex.EncodeToString(hashInBytes)
-
 	return returnMD5String, nil
 }
