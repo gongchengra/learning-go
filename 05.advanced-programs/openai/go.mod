@@ -9,7 +9,7 @@ require (
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
-	github.com/sashabaranov/go-openai v1.17.3
+	github.com/sashabaranov/go-openai v1.20.1
 	golang.org/x/crypto v0.5.0
 )
 

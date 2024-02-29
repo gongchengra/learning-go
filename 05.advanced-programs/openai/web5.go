@@ -63,7 +63,7 @@ func chat(input string) (output string) {
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: openai.GPT4TurboPreview,
+			Model: openai.GPT4Turbo0125,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
