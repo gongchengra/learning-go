@@ -64,13 +64,11 @@ func main() {
 			return
 		}
 		defer f.Close()
-
 		dirs, err := f.Readdir(-1)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-
 		for _, d := range dirs {
 			if d.IsDir() {
 				continue // skip directories
