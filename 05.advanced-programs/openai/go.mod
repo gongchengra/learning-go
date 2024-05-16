@@ -4,12 +4,12 @@ go 1.19
 
 require (
 	github.com/AlmazDelDiablo/gpt3-5-turbo-go v0.0.0-20230301215351-50b92e802770
-	github.com/gin-contrib/sessions v0.0.5
+	github.com/gin-contrib/sessions v0.0.4
 	github.com/gin-gonic/gin v1.9.0
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/joho/godotenv v1.5.1
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible
-	github.com/sashabaranov/go-openai v1.20.1
+	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/sashabaranov/go-openai v1.24.0
 	golang.org/x/crypto v0.5.0
 )
 
